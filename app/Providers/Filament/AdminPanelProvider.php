@@ -17,6 +17,10 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Swis\Filament\Backgrounds\FilamentBackgroundsPlugin;
+use Swis\Filament\Backgrounds\ImageProviders\MyImages;
+use ShuvroRoy\FilamentSpatieLaravelHealth\FilamentSpatieLaravelHealthPlugin;
+
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -53,6 +57,15 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+            ])
+            ->plugins([
+            FilamentBackgroundsPlugin::make()
+                ->imageProvider(
+                    MyImages::make()
+                        ->directory('images/login-backgrounds')
+                ),
+            FilamentSpatieLaravelHealthPlugin::make(),
+
             ]);
     }
 }

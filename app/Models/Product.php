@@ -25,7 +25,7 @@ class Product extends Model
         'sku', 
     ];
 
-    public function categorie():BelongsTo
+    public function category():BelongsTo
     {
         return $this->belongsTo(Categorie::class);
     }
