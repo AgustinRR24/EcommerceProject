@@ -6,19 +6,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class PromoCode extends Model
+class PaymentMethod extends Model
 {
     use HasFactory;
 
-    protected $table = 'promo_codes';
-
     protected $fillable = [
-        'code',
-        'discount_percentage',
-        'is_active'
-    ];    
+        'name'
+    ];
 
-    public function orders():HasMany
+    public function order():HasMany
     {
         return $this->hasMany(Order::class);
     }
