@@ -12,17 +12,25 @@ class Product extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 
-        'slug', 
-        'image', 
-        'price', 
-        'discount_price', 
-        'description', 
-        'category_id', 
-        'brand_id', 
-        'is_active', 
-        'stock', 
-        'sku', 
+        'name',
+        'slug',
+        'image',
+        'price',
+        'discount_price',
+        'description',
+        'category_id',
+        'brand_id',
+        'is_active',
+        'stock',
+        'sku',
+        'video_url',
+    ];
+
+    protected $casts = [
+        'price' => 'decimal:2',
+        'discount_price' => 'decimal:2',
+        'is_active' => 'boolean',
+        'stock' => 'integer',
     ];
 
     public function category():BelongsTo
@@ -43,5 +51,21 @@ class Product extends Model
     public function orderDetails(): HasMany
     {
         return $this->hasMany(OrderDetail::class);
+    }
+
+    public function cartItems(): HasMany
+    {
+        return $this->hasMany(CartItem::class);
+    }
+
+    // Métodos útiles
+    public function getPriceForCartAttribute(): float
+    {
+        return $this->discount_price ?? $this->price;
+    }
+
+    public function isInStock(int $quantity = 1): bool
+    {
+        return $this->stock >= $quantity;
     }
 }

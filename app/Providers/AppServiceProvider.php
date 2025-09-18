@@ -18,6 +18,9 @@ use Spatie\Health\Checks\Checks\PingCheck;
 use Spatie\Health\Checks\Checks\QueueCheck;
 //use Spatie\Health\Checks\Checks\RedisCheck;
 use Spatie\Health\Checks\Checks\ScheduleCheck;
+use BezhanSalleh\FilamentLanguageSwitch\LanguageSwitch;
+
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,6 +38,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         
+        LanguageSwitch::configureUsing(function (LanguageSwitch $switch) {
+            $switch
+                ->locales(['en', 'es', 'pt_BR']); // Inglés y Español
+        });
+
         Health::checks([
             //CpuLoadCheck::new()->failWhenLoadIsHigherThan(2.0),
             DatabaseCheck::new(),

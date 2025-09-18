@@ -17,7 +17,9 @@ class OrderResource extends Resource
 {
     protected static ?string $model = Order::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
+
+    protected static ?string $navigationGroup = 'Sales';
 
     public static function form(Form $form): Form
     {
@@ -37,8 +39,9 @@ class OrderResource extends Resource
                     ->required()
                     ->numeric(),
                 Forms\Components\Select::make('promo_code_id')
-                    ->relationship('promoCode', 'id')
-                    ->default(null),
+                    ->relationship('promoCode', 'code')
+                    ->label('Promo Code')
+                    ->nullable(),
                 Forms\Components\TextInput::make('discount')
                     ->required()
                     ->numeric()
@@ -85,7 +88,8 @@ class OrderResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('user.name')
-                    ->numeric()
+                    ->label('Customer')
+                    ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('order_number')
                     ->searchable(),
@@ -94,8 +98,8 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('subtotal')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('promoCode.id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('promoCode.code')
+                    ->label('Promo Code')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('discount')
                     ->numeric()

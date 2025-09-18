@@ -17,7 +17,9 @@ class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-cube';
+
+    protected static ?string $navigationGroup = 'Catalog';
 
     public static function form(Form $form): Form
     {
@@ -26,9 +28,9 @@ class ProductResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('category_id')
-                    ->required()
-                    ->numeric(),
+                Forms\Components\Select::make('category_id')
+                    ->relationship('category', 'name')
+                    ->required(),
                 Forms\Components\Select::make('brand_id')
                     ->relationship('brand', 'name')
                     ->required(),
@@ -36,16 +38,24 @@ class ProductResource extends Resource
                     ->required()
                     ->maxLength(255),
                 Forms\Components\FileUpload::make('image')
-                    ->image(),
+                    ->image()
+                    ->directory('product-images')
+                    ->visibility('public')
+                    ->rules(['mimes:jpeg,jpg,png,gif,webp']),
                 Forms\Components\TextInput::make('price')
                     ->required()
-                    ->maxLength(255),
+                    ->numeric()
+                    ->prefix('$')
+                    ->step(0.01),
                 Forms\Components\TextInput::make('discount_price')
-                    ->maxLength(255)
-                    ->default(null),
-                Forms\Components\TextInput::make('description')
-                    ->maxLength(255)
-                    ->default(null),
+                    ->numeric()
+                    ->prefix('$')
+                    ->step(0.01)
+                    ->nullable(),
+                Forms\Components\Textarea::make('description')
+                    ->rows(3)
+                    ->maxLength(1000)
+                    ->nullable(),
                 Forms\Components\Toggle::make('is_active')
                     ->required(),
                 Forms\Components\TextInput::make('stock')
@@ -65,11 +75,11 @@ class ProductResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('category_id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('category.name')
+                    ->label('Category')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('brand.name')
-                    ->numeric()
+                    ->label('Brand')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('slug')
                     ->searchable(),
@@ -113,7 +123,7 @@ class ProductResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\ProductPhotosRelationManager::class,
         ];
     }
 

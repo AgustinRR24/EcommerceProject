@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Brand extends Model
 {
-    use hasFactory;
+    use HasFactory;
 
     protected $table = 'brands';
 

@@ -18,12 +18,13 @@ return new class extends Migration
             $table->foreignId('brand_id')->constrained('brands')->cascadeOnDelete();
             $table->string('slug')->unique();
             $table->string('image')->nullable();
-            $table->string('price');
-            $table->string('discount_price')->nullable();
+            $table->decimal('price', 16, 2);
+            $table->decimal('discount_price', 16, 2)->nullable();
             $table->string('description')->nullable();
             $table->boolean('is_active')->default(true);
             $table->integer('stock')->default(0);
             $table->string('sku')->nullable();
+            $table->string('video_url')->nullable();
             $table->timestamps();
         });
     }

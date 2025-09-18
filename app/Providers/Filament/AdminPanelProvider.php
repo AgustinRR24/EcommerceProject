@@ -65,7 +65,6 @@ class AdminPanelProvider extends PanelProvider
                         ->directory('images/login-backgrounds')
                 ),
             FilamentSpatieLaravelHealthPlugin::make(),
-
             ]);
     }
 }
