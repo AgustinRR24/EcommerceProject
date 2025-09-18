@@ -6,12 +6,21 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Categorie;
 use App\Models\Brand;
+use Inertia\Inertia;
 
 class LandingController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::with(['category', 'brand']);
+        $query = Product::with(['category', 'brand', 'productPhotos']);
+
+        // Filtro por búsqueda
+        if ($request->filled('search')) {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('description', 'like', '%' . $request->search . '%');
+            });
+        }
 
         // Filtro por precio
         if ($request->filled('min_price')) {
@@ -31,17 +40,15 @@ class LandingController extends Controller
             $query->whereIn('brand_id', $request->brands);
         }
 
-        $products = $query->where('is_active', true)->paginate(9)->withQueryString();
+        $products = $query->where('is_active', true)->paginate(12)->withQueryString();
         $categories = Categorie::where('is_active', true)->get();
         $brands = Brand::where('is_active', true)->get();
 
-        // Para mostrar la imagen principal del producto
-        foreach ($products as $product) {
-            $product->image_url = $product->image 
-                ? asset('storage/' . $product->image)
-                : ($product->productPhotos->first()->url_photo ?? null);
-        }
-
-        return view('landing', compact('products', 'categories', 'brands'));
+        return Inertia::render('Landing', [
+            'products' => $products,
+            'categories' => $categories,
+            'brands' => $brands,
+            'filters' => $request->only(['min_price', 'max_price', 'categories', 'brands', 'search'])
+        ]);
     }
 }
