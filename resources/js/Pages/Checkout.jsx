@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, router } from '@inertiajs/react';
 import Layout from '../Components/Layout';
 
 export default function Checkout({ cartItems, subtotal, shipping, tax, total, user }) {
     const [isProcessing, setIsProcessing] = useState(false);
+    const [showWallet, setShowWallet] = useState(false);
+    const [preferenceId, setPreferenceId] = useState(null);
+    const [publicKey, setPublicKey] = useState(null);
     const [formData, setFormData] = useState({
         // Información de envío
         shipping_name: user.name || '',
@@ -13,13 +16,6 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
         shipping_city: '',
         shipping_state: '',
         shipping_zip: '',
-
-        // Información de pago
-        payment_method: 'credit_card',
-        card_number: '',
-        card_expiry: '',
-        card_cvv: '',
-        card_name: ''
     });
 
     const formatPrice = (price) => {
@@ -42,6 +38,8 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
         setIsProcessing(true);
 
         try {
+            console.log('Sending checkout request with data:', formData);
+
             const response = await fetch('/checkout/process', {
                 method: 'POST',
                 headers: {
@@ -51,13 +49,23 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                 body: JSON.stringify(formData)
             });
 
+            console.log('Response status:', response.status);
             const data = await response.json();
+            console.log('Response data:', data);
 
             if (data.success) {
-                alert('¡Pedido procesado exitosamente!');
-                router.visit('/');
+                console.log('Setting wallet data:', {
+                    preference_id: data.preference_id,
+                    public_key: data.public_key
+                });
+
+                // Guardar los datos para inicializar el wallet
+                setPreferenceId(data.preference_id);
+                setPublicKey(data.public_key);
+                setShowWallet(true);
             } else {
-                alert('Error al procesar el pedido');
+                console.error('Checkout error:', data);
+                alert('Error al procesar el pedido: ' + (data.error || 'Error desconocido'));
             }
         } catch (error) {
             console.error('Error:', error);
@@ -66,6 +74,49 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
             setIsProcessing(false);
         }
     };
+
+    // Inicializar MercadoPago Wallet cuando tengamos los datos
+    useEffect(() => {
+        console.log('MercadoPago useEffect:', {
+            showWallet,
+            preferenceId,
+            publicKey,
+            hasMercadoPago: !!window.MercadoPago
+        });
+
+        if (showWallet && preferenceId && publicKey) {
+            if (!window.MercadoPago) {
+                console.error('MercadoPago SDK not loaded');
+                return;
+            }
+
+            const mp = new window.MercadoPago(publicKey);
+            const bricksBuilder = mp.bricks();
+
+            const renderWalletBrick = async () => {
+                try {
+                    console.log('Creating wallet brick with preferenceId:', preferenceId);
+
+                    // Limpiar el container antes de crear el brick
+                    const container = document.getElementById("walletBrick_container");
+                    if (container) {
+                        container.innerHTML = '';
+                    }
+
+                    await bricksBuilder.create("wallet", "walletBrick_container", {
+                        initialization: {
+                            preferenceId: preferenceId,
+                        }
+                    });
+                    console.log('Wallet brick created successfully');
+                } catch (error) {
+                    console.error('Error creating wallet brick:', error);
+                }
+            };
+
+            renderWalletBrick();
+        }
+    }, [showWallet, preferenceId, publicKey]);
 
     return (
         <Layout>
@@ -80,10 +131,15 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                     </p>
                 </div>
 
-                <div style={{ display: 'grid', gap: '2rem', gridTemplateColumns: '1fr', '@media (min-width: 1024px)': { gridTemplateColumns: '2fr 1fr' } }}>
+                <div style={{
+                    display: 'grid',
+                    gap: '2rem',
+                    gridTemplateColumns: window.innerWidth >= 1024 ? '2fr 1fr' : '1fr'
+                }}>
                     {/* Formulario de Checkout */}
                     <div>
-                        <form onSubmit={handleSubmit} style={{ backgroundColor: 'white', borderRadius: '0.5rem', border: '1px solid #e5e7eb', padding: '2rem' }}>
+                        {!showWallet ? (
+                            <form onSubmit={handleSubmit} style={{ backgroundColor: 'white', borderRadius: '0.5rem', border: '1px solid #e5e7eb', padding: '2rem' }}>
                             {/* Información de Envío */}
                             <div style={{ marginBottom: '2rem' }}>
                                 <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem' }}>
@@ -232,95 +288,15 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                                 </div>
                             </div>
 
-                            {/* Información de Pago */}
-                            <div style={{ marginBottom: '2rem' }}>
-                                <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem' }}>
-                                    Payment Information
+                            {/* Nota sobre el Pago */}
+                            <div style={{ marginBottom: '2rem', padding: '1rem', backgroundColor: '#f0f9ff', borderRadius: '0.5rem', border: '1px solid #bfdbfe' }}>
+                                <h2 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1e40af', marginBottom: '0.5rem' }}>
+                                    💳 Payment with MercadoPago
                                 </h2>
-
-                                <div style={{ marginBottom: '1rem' }}>
-                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
-                                        Card Number
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="card_number"
-                                        value={formData.card_number}
-                                        onChange={handleInputChange}
-                                        placeholder="1234 5678 9012 3456"
-                                        required
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.75rem',
-                                            border: '1px solid #d1d5db',
-                                            borderRadius: '0.375rem',
-                                            outline: 'none'
-                                        }}
-                                    />
-                                </div>
-
-                                <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: '1fr 1fr' }}>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
-                                            Expiry Date
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="card_expiry"
-                                            value={formData.card_expiry}
-                                            onChange={handleInputChange}
-                                            placeholder="MM/YY"
-                                            required
-                                            style={{
-                                                width: '100%',
-                                                padding: '0.75rem',
-                                                border: '1px solid #d1d5db',
-                                                borderRadius: '0.375rem',
-                                                outline: 'none'
-                                            }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
-                                            CVV
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="card_cvv"
-                                            value={formData.card_cvv}
-                                            onChange={handleInputChange}
-                                            placeholder="123"
-                                            required
-                                            style={{
-                                                width: '100%',
-                                                padding: '0.75rem',
-                                                border: '1px solid #d1d5db',
-                                                borderRadius: '0.375rem',
-                                                outline: 'none'
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div style={{ marginTop: '1rem' }}>
-                                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
-                                        Cardholder Name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="card_name"
-                                        value={formData.card_name}
-                                        onChange={handleInputChange}
-                                        required
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.75rem',
-                                            border: '1px solid #d1d5db',
-                                            borderRadius: '0.375rem',
-                                            outline: 'none'
-                                        }}
-                                    />
-                                </div>
+                                <p style={{ color: '#1e40af', fontSize: '0.875rem' }}>
+                                    You will be redirected to MercadoPago to complete your payment securely.
+                                    You can pay with credit cards, debit cards, bank transfers, and more.
+                                </p>
                             </div>
 
                             {/* Botones */}
@@ -352,10 +328,39 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                                         opacity: isProcessing ? 0.5 : 1
                                     }}
                                 >
-                                    {isProcessing ? 'Processing...' : `Place Order - ${formatPrice(total)}`}
+                                    {isProcessing ? 'Processing...' : 'Continue to Payment'}
                                 </button>
                             </div>
                         </form>
+                        ) : (
+                            <div style={{ backgroundColor: 'white', borderRadius: '0.5rem', border: '1px solid #e5e7eb', padding: '2rem' }}>
+                                <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem' }}>
+                                    Complete Your Payment
+                                </h2>
+                                <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
+                                    Click the button below to complete your payment with MercadoPago
+                                </p>
+
+                                {/* Container para el botón de MercadoPago */}
+                                <div id="walletBrick_container"></div>
+
+                                <button
+                                    onClick={() => setShowWallet(false)}
+                                    style={{
+                                        marginTop: '1rem',
+                                        backgroundColor: '#f3f4f6',
+                                        color: '#374151',
+                                        padding: '0.5rem 1rem',
+                                        borderRadius: '0.375rem',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        fontSize: '0.875rem'
+                                    }}
+                                >
+                                    ← Back to Shipping Info
+                                </button>
+                            </div>
+                        )}
                     </div>
 
                     {/* Order Summary */}
