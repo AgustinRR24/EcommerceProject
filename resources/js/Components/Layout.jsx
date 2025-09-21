@@ -39,8 +39,15 @@ export default function Layout({ children }) {
                             </Link>
                         </nav>
 
-                        {/* Cart & Mobile Menu */}
+                        {/* Profile, Cart & Mobile Menu */}
                         <div className="flex items-center space-x-4">
+                            {/* Profile Icon */}
+                            <Link href="/customer" className="p-2 text-gray-700 hover:text-brand-600 transition-colors">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </Link>
+
                             {/* Cart Icon */}
                             <Link href="/cart" className="relative p-2 text-gray-700 hover:text-brand-600 transition-colors">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,6 +82,9 @@ export default function Layout({ children }) {
                                 </Link>
                                 <Link href="/brands" className="text-gray-700 hover:text-brand-600 font-medium">
                                     Brands
+                                </Link>
+                                <Link href="/customer" className="text-gray-700 hover:text-brand-600 font-medium">
+                                    Profile
                                 </Link>
                             </div>
                         </div>

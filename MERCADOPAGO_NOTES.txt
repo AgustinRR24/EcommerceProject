@@ -1,0 +1,70 @@
+DOCUMENTACIÓN MERCADOPAGO - ECOMMERCE PROJECT
+===============================================
+
+COMANDO PARA CORRER ESTILOS:
+node node_modules/vite/bin/vite.js
+
+CONFIGURACIÓN ACTUAL QUE FUNCIONA:
+==================================
+
+1. WEBHOOK IMPLEMENTADO ✅
+   - Ruta: /checkout/webhook (sin CSRF)
+   - Controlador: CheckoutController@webhook
+   - Función: Actualiza automáticamente el estado de la orden cuando MercadoPago notifica
+
+2. URLs DE RETORNO CONFIGURADAS ✅
+   - Success: /checkout/success
+   - Failure: /checkout/failure
+   - Pending: /checkout/pending
+
+3. FLUJO DE PAGO ACTUAL:
+   - Usuario completa checkout → se crea orden con status "pending"
+   - MercadoPago procesa pago → envía notificación a webhook
+   - Webhook actualiza orden a "completed" y limpia carrito
+   - Usuario es redirigido a página de éxito
+
+PROBLEMAS CONOCIDOS:
+===================
+
+❌ AUTO_RETURN: Da problemas en MercadoPago, NO USAR
+   - Comentario en código: "sin auto_return por problemas de compatibilidad"
+
+❌ WEBHOOK EN LOCALHOST: No funciona en desarrollo
+   - MercadoPago no puede acceder a localhost
+   - Solución: usar ngrok o similar para exponer webhook
+
+CONFIGURACIÓN PARA PRODUCCIÓN:
+=============================
+
+1. WEBHOOK URL debe ser público (no localhost)
+2. HTTPS requerido para webhook
+3. Auto_return NO usar por problemas de compatibilidad
+
+ENDPOINTS ÚTILES PARA DESARROLLO:
+================================
+
+- Manual: /checkout/process-payment (POST)
+- Test: /checkout/process-payment-test/{paymentId}/{externalReference} (GET)
+- Check pending: /checkout/check-pending (GET)
+
+ESTADO ACTUAL:
+=============
+- Webhook: ✅ Implementado y funcionando
+- URLs retorno: ✅ Configuradas
+- Auto_return: ❌ Deshabilitado por problemas
+- Actualización automática estado: ✅ Funciona via webhook
+
+ERRORES SOLUCIONADOS:
+====================
+
+✅ ERROR 419 EN CARRITO: Solucionado
+   - Problema: Usaba fetch() con CSRF manual
+   - Solución: Cambiar a router.post/patch/delete de Inertia
+   - Archivo modificado: resources/js/Pages/Cart.jsx
+   - Archivo modificado: resources/js/Pages/ProductShow.jsx
+   - Inertia maneja CSRF automáticamente
+
+PRÓXIMOS PASOS:
+==============
+- Para desarrollo: configurar ngrok para webhook público
+- Para producción: asegurar HTTPS en webhook URL

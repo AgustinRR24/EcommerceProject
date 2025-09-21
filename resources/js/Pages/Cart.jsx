@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Link, router } from '@inertiajs/react';
 import Layout from '../Components/Layout';
+import Toast from '../Components/Toast';
 
 export default function Cart({ cartItems, total, itemCount }) {
     const [isUpdating, setIsUpdating] = useState({});
     const [isRemoving, setIsRemoving] = useState({});
+    const [toast, setToast] = useState(null);
 
     const formatPrice = (price) => {
         return new Intl.NumberFormat('en-US', {
@@ -13,80 +15,76 @@ export default function Cart({ cartItems, total, itemCount }) {
         }).format(price);
     };
 
-    const updateQuantity = async (itemId, newQuantity) => {
+    const updateQuantity = (itemId, newQuantity) => {
         if (newQuantity < 1) return;
 
         setIsUpdating(prev => ({ ...prev, [itemId]: true }));
 
-        try {
-            const response = await fetch(`/cart/${itemId}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        router.patch(`/cart/${itemId}`,
+            { quantity: newQuantity },
+            {
+                onSuccess: () => {
+                    // Los datos se actualizan automáticamente con Inertia
                 },
-                body: JSON.stringify({ quantity: newQuantity })
-            });
-
-            if (response.ok) {
-                // Recargar la página para actualizar los datos
-                router.reload();
-            } else {
-                alert('Error al actualizar la cantidad');
+                onError: (error) => {
+                    console.error('Error:', error);
+                    setToast({
+                        message: 'Error al actualizar la cantidad',
+                        type: 'error'
+                    });
+                },
+                onFinish: () => {
+                    setIsUpdating(prev => ({ ...prev, [itemId]: false }));
+                }
             }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error al actualizar la cantidad');
-        } finally {
-            setIsUpdating(prev => ({ ...prev, [itemId]: false }));
-        }
+        );
     };
 
-    const removeItem = async (itemId) => {
+    const removeItem = (itemId) => {
         setIsRemoving(prev => ({ ...prev, [itemId]: true }));
 
-        try {
-            const response = await fetch(`/cart/${itemId}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        router.delete(`/cart/${itemId}`,
+            {
+                onSuccess: () => {
+                    setToast({
+                        message: 'Producto eliminado del carrito',
+                        type: 'success'
+                    });
+                },
+                onError: (error) => {
+                    console.error('Error:', error);
+                    setToast({
+                        message: 'Error al eliminar el producto',
+                        type: 'error'
+                    });
+                },
+                onFinish: () => {
+                    setIsRemoving(prev => ({ ...prev, [itemId]: false }));
                 }
-            });
-
-            if (response.ok) {
-                // Recargar la página para actualizar los datos
-                router.reload();
-            } else {
-                alert('Error al eliminar el producto');
             }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error al eliminar el producto');
-        } finally {
-            setIsRemoving(prev => ({ ...prev, [itemId]: false }));
-        }
+        );
     };
 
-    const clearCart = async () => {
+    const clearCart = () => {
         if (!confirm('¿Estás seguro de que quieres vaciar el carrito?')) return;
 
-        try {
-            const response = await fetch('/cart', {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        router.delete('/cart',
+            {
+                onSuccess: () => {
+                    setToast({
+                        message: 'Carrito vaciado correctamente',
+                        type: 'success'
+                    });
+                },
+                onError: (error) => {
+                    console.error('Error:', error);
+                    setToast({
+                        message: 'Error al vaciar el carrito',
+                        type: 'error'
+                    });
                 }
-            });
-
-            if (response.ok) {
-                router.reload();
-            } else {
-                alert('Error al vaciar el carrito');
             }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error al vaciar el carrito');
-        }
+        );
     };
 
     return (
@@ -324,6 +322,15 @@ export default function Cart({ cartItems, total, itemCount }) {
                         </Link>
                     </div>
                 )}
+
+            {/* Toast Notification */}
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
             </div>
         </Layout>
     );

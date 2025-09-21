@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link, router } from '@inertiajs/react';
 import Layout from '../Components/Layout';
+import Toast from '../Components/Toast';
 
 export default function ProductShow({ product }) {
     const [selectedImage, setSelectedImage] = useState(0);
     const [quantity, setQuantity] = useState(1);
     const [isAddingToCart, setIsAddingToCart] = useState(false);
+    const [toast, setToast] = useState(null);
 
     const formatPrice = (price) => {
         return new Intl.NumberFormat('en-US', {
@@ -18,37 +20,33 @@ export default function ProductShow({ product }) {
         ? Math.round(((product.price - product.discount_price) / product.price) * 100)
         : 0;
 
-    const addToCart = async () => {
+    const addToCart = () => {
         setIsAddingToCart(true);
 
-        try {
-            const response = await fetch('/cart/add', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        router.post('/cart/add',
+            {
+                product_id: product.id,
+                quantity: quantity
+            },
+            {
+                onSuccess: () => {
+                    setToast({
+                        message: '¡Producto agregado al carrito! 🛒',
+                        type: 'success'
+                    });
                 },
-                body: JSON.stringify({
-                    product_id: product.id,
-                    quantity: quantity
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                // Mostrar mensaje de éxito
-                alert('¡Producto agregado al carrito!');
-                // Opcional: actualizar contador del carrito en el header
-            } else {
-                alert('Error al agregar al carrito');
+                onError: (error) => {
+                    console.error('Error:', error);
+                    setToast({
+                        message: 'Error al agregar al carrito',
+                        type: 'error'
+                    });
+                },
+                onFinish: () => {
+                    setIsAddingToCart(false);
+                }
             }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error al agregar al carrito');
-        } finally {
-            setIsAddingToCart(false);
-        }
+        );
     };
 
     // Combine main image with additional photos
@@ -248,6 +246,15 @@ export default function ProductShow({ product }) {
                     </div>
                 </div>
             </div>
+
+            {/* Toast Notification */}
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
         </Layout>
     );
 }

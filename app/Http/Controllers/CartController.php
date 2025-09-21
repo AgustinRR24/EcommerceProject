@@ -49,7 +49,7 @@ class CartController extends Controller
     public function add(Request $request)
     {
         if (!Auth::check()) {
-            return response()->json(['error' => 'Debes iniciar sesión para agregar productos al carrito'], 401);
+            return redirect('/customer/login')->with('error', 'Debes iniciar sesión para agregar productos al carrito');
         }
 
         $request->validate([
@@ -81,10 +81,7 @@ class CartController extends Controller
             ]);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Producto agregado al carrito'
-        ]);
+        return back()->with('success', 'Producto agregado al carrito');
     }
 
     public function update(Request $request, CartItem $cartItem)
@@ -94,55 +91,46 @@ class CartController extends Controller
         ]);
 
         if (!Auth::check()) {
-            return response()->json(['error' => 'No autorizado'], 401);
+            return redirect('/customer/login')->with('error', 'No autorizado');
         }
 
         // Verificar que el item pertenece al usuario
         if ($cartItem->user_id !== Auth::id()) {
-            return response()->json(['error' => 'No autorizado'], 403);
+            return back()->with('error', 'No autorizado');
         }
 
         $cartItem->update([
             'quantity' => $request->quantity
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Cantidad actualizada'
-        ]);
+        return back()->with('success', 'Cantidad actualizada');
     }
 
     public function remove(CartItem $cartItem)
     {
         if (!Auth::check()) {
-            return response()->json(['error' => 'No autorizado'], 401);
+            return redirect('/customer/login')->with('error', 'No autorizado');
         }
 
         // Verificar que el item pertenece al usuario
         if ($cartItem->user_id !== Auth::id()) {
-            return response()->json(['error' => 'No autorizado'], 403);
+            return back()->with('error', 'No autorizado');
         }
 
         $cartItem->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Producto eliminado del carrito'
-        ]);
+        return back()->with('success', 'Producto eliminado del carrito');
     }
 
     public function clear()
     {
         if (!Auth::check()) {
-            return response()->json(['error' => 'No autorizado'], 401);
+            return redirect('/customer/login')->with('error', 'No autorizado');
         }
 
         CartItem::forUser(Auth::id())->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Carrito vaciado'
-        ]);
+        return back()->with('success', 'Carrito vaciado');
     }
 
     public function getCount()
