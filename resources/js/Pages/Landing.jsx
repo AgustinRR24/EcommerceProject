@@ -56,10 +56,14 @@ export default function Landing({ products, categories, brands, filters = {} }) 
             {/* Hero Section */}
             <section
                 style={{
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    backgroundImage: 'linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%), url("https://images.unsplash.com/photo-1484704849700-f032a568e944?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80")',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
                     color: 'white',
                     padding: '80px 0',
-                    position: 'relative'
+                    position: 'relative',
+                    minHeight: '500px'
                 }}
             >
                 {/* Overlay for better text readability */}
@@ -70,7 +74,7 @@ export default function Landing({ products, categories, brands, filters = {} }) 
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        backgroundColor: 'rgba(0, 0, 0, 0.2)'
+                        backgroundColor: 'rgba(0, 0, 0, 0.4)'
                     }}
                 ></div>
 
@@ -89,20 +93,20 @@ export default function Landing({ products, categories, brands, filters = {} }) 
                                 fontSize: '3.5rem',
                                 fontWeight: 'bold',
                                 marginBottom: '1.5rem',
-                                textShadow: '0 4px 8px rgba(0, 0, 0, 0.5)'
+                                textShadow: '0 4px 8px rgba(0, 0, 0, 0.7)'
                             }}
                         >
-                            Discover Amazing Products
+                            Tech Store Premium
                         </h1>
                         <p
                             style={{
                                 fontSize: '1.25rem',
                                 marginBottom: '2rem',
-                                textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+                                textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
                                 color: '#f3f4f6'
                             }}
                         >
-                            Curated collection of quality products at unbeatable prices
+                            La mejor tecnología al alcance de tus manos. Descubre smartphones, laptops, gadgets y mucho más.
                         </p>
 
                         {/* Search Bar */}

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\OrderDetail;
+use App\Models\PromoCode;
 use App\Services\MercadoPagoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -80,6 +81,8 @@ class CheckoutController extends Controller
             'shipping_city' => 'required|string',
             'shipping_state' => 'required|string',
             'shipping_zip' => 'required|string',
+            'promo_code_id' => 'nullable|exists:promo_codes,id',
+            'final_total' => 'nullable|numeric|min:0'
         ]);
 
         $userId = Auth::id();
@@ -132,21 +135,35 @@ class CheckoutController extends Controller
         });
         $shipping = 0;
         $tax = 0;
-        $total = $subtotal + $shipping + $tax;
+
+        // Aplicar código promocional si existe
+        $discount = 0;
+        $promoCodeId = $request->promo_code_id;
+        if ($promoCodeId) {
+            $promoCode = PromoCode::where('id', $promoCodeId)
+                                  ->where('is_active', true)
+                                  ->first();
+            if ($promoCode) {
+                $discount = ($subtotal * $promoCode->discount_percentage) / 100;
+            }
+        }
+
+        $total = $subtotal + $shipping + $tax - $discount;
 
         // Crear la orden en la base de datos
-        $order = DB::transaction(function () use ($cartItems, $user, $request, $externalReference, $subtotal, $shipping, $tax, $total) {
+        $order = DB::transaction(function () use ($cartItems, $user, $request, $externalReference, $subtotal, $shipping, $tax, $total, $discount, $promoCodeId) {
             // Crear la orden
             $order = Order::create([
                 'user_id' => $user->id,
                 'order_number' => $externalReference,
                 'status' => 'pending',
                 'subtotal' => $subtotal,
-                'discount' => 0,
+                'discount' => $discount,
                 'tax' => $tax,
                 'total' => $total,
                 'payment_method' => 'mercadopago',
                 'payment_status' => 'pending',
+                'promo_code_id' => $promoCodeId,
                 'shipping_address' => $request->shipping_address,
                 'shipping_city' => $request->shipping_city,
                 'shipping_state' => $request->shipping_state,
@@ -479,5 +496,33 @@ class CheckoutController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function validatePromoCode(Request $request)
+    {
+        $request->validate([
+            'code' => 'required|string'
+        ]);
+
+        $promoCode = PromoCode::where('code', $request->code)
+                             ->where('is_active', true)
+                             ->first();
+
+        if (!$promoCode) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Código promocional no válido o expirado'
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Código promocional aplicado correctamente',
+            'promo_code' => [
+                'id' => $promoCode->id,
+                'code' => $promoCode->code,
+                'discount_percentage' => $promoCode->discount_percentage
+            ]
+        ]);
     }
 }

@@ -10,11 +10,17 @@ export default function ProductShow({ product }) {
     const [toast, setToast] = useState(null);
 
     const formatPrice = (price) => {
-        return new Intl.NumberFormat('en-US', {
+        return new Intl.NumberFormat('es-AR', {
             style: 'currency',
-            currency: 'USD'
+            currency: 'ARS'
         }).format(price);
     };
+
+    const IVA_RATE = 0.21;
+
+    const currentPrice = product.discount_price || product.price;
+    const priceWithoutIVA = currentPrice / (1 + IVA_RATE);
+    const priceWithIVA = currentPrice;
 
     const discountPercentage = product.discount_price
         ? Math.round(((product.price - product.discount_price) / product.price) * 100)
@@ -129,15 +135,23 @@ export default function ProductShow({ product }) {
                         </h1>
 
                         {/* Price */}
-                        <div className="flex items-center space-x-4">
-                            <span className="text-3xl font-bold text-gray-900">
-                                {formatPrice(product.discount_price || product.price)}
-                            </span>
-                            {product.discount_price && (
-                                <span className="text-xl text-gray-500 line-through">
-                                    {formatPrice(product.price)}
+                        <div className="space-y-2">
+                            <div className="flex items-center space-x-4">
+                                <span className="text-3xl font-bold text-gray-900">
+                                    {formatPrice(priceWithIVA)}
                                 </span>
-                            )}
+                                {product.discount_price && (
+                                    <span className="text-xl text-gray-500 line-through">
+                                        {formatPrice(product.price)}
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Price without IVA */}
+                            <div className="text-lg text-gray-600">
+                                <span>Sin IVA: {formatPrice(priceWithoutIVA)}</span>
+                                <span className="text-sm text-gray-500 ml-2">(IVA 21% incluido)</span>
+                            </div>
                         </div>
 
                         {/* Stock Status */}

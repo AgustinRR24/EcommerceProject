@@ -6,7 +6,8 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 
-Route::get('/', [LandingController::class, 'index'])->name('landing');
+Route::get('/', [LandingController::class, 'home'])->name('home');
+Route::get('/products', [LandingController::class, 'index'])->name('landing');
 Route::get('/products/{id}', [ProductController::class, 'show'])->name('products.show');
 
 // Rutas del carrito
@@ -17,12 +18,14 @@ Route::prefix('cart')->name('cart.')->group(function () {
     Route::delete('/{cartItem}', [CartController::class, 'remove'])->name('remove');
     Route::delete('/', [CartController::class, 'clear'])->name('clear');
     Route::get('/count', [CartController::class, 'getCount'])->name('count');
+    Route::post('/update-prices', [CartController::class, 'updateCartPrices'])->name('update-prices');
 });
 
 // Rutas del checkout
 Route::prefix('checkout')->name('checkout.')->group(function () {
     Route::get('/', [CheckoutController::class, 'index'])->name('index');
     Route::post('/process', [CheckoutController::class, 'process'])->name('process');
+    Route::post('/validate-promo', [CheckoutController::class, 'validatePromoCode'])->name('validate-promo');
     Route::get('/success', [CheckoutController::class, 'success'])->name('success');
     Route::get('/failure', [CheckoutController::class, 'failure'])->name('failure');
     Route::get('/pending', [CheckoutController::class, 'pending'])->name('pending');
@@ -42,3 +45,12 @@ Route::get('/checkout/process-payment-test/{paymentId}/{externalReference}', fun
 
 // Endpoint para verificar pagos pendientes automáticamente
 Route::get('/checkout/check-pending', [CheckoutController::class, 'checkPendingPayments'])->name('checkout.check-pending');
+
+// Ruta para imprimir órdenes
+Route::get('/order/{order}/print', function(\App\Models\Order $order) {
+    return view('order-invoice', ['record' => $order]);
+})->name('order.print');
+
+// Nuevas rutas para páginas adicionales
+Route::get('/hotsale', [\App\Http\Controllers\LandingController::class, 'hotsale'])->name('hotsale');
+Route::get('/about', [\App\Http\Controllers\LandingController::class, 'about'])->name('about');

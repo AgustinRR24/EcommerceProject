@@ -62,6 +62,11 @@ class CartController extends Controller
         $product = Product::findOrFail($request->product_id);
         $quantity = $request->quantity ?? 1;
 
+        // Determinar el precio a usar (precio de descuento si existe, sino precio regular)
+        $price = $product->discount_price && $product->discount_price < $product->price
+                 ? $product->discount_price
+                 : $product->price;
+
         // Verificar si el producto ya está en el carrito
         $existingItem = CartItem::where('user_id', $userId)
             ->where('product_id', $product->id)
@@ -77,7 +82,7 @@ class CartController extends Controller
                 'user_id' => $userId,
                 'product_id' => $product->id,
                 'quantity' => $quantity,
-                'price' => $product->price
+                'price' => $price
             ]);
         }
 
@@ -143,6 +148,39 @@ class CartController extends Controller
 
         return response()->json([
             'count' => $count
+        ]);
+    }
+
+    public function updateCartPrices()
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'No autorizado'], 401);
+        }
+
+        $userId = Auth::id();
+        $cartItems = CartItem::with('product')->forUser($userId)->get();
+        $updated = 0;
+
+        foreach ($cartItems as $item) {
+            $product = $item->product;
+            if ($product) {
+                // Determinar el precio correcto
+                $correctPrice = $product->discount_price && $product->discount_price < $product->price
+                               ? $product->discount_price
+                               : $product->price;
+
+                // Solo actualizar si el precio es diferente
+                if ($item->price != $correctPrice) {
+                    $item->update(['price' => $correctPrice]);
+                    $updated++;
+                }
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Se actualizaron {$updated} productos en el carrito",
+            'updated_count' => $updated
         ]);
     }
 }

@@ -17,13 +17,19 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
         shipping_state: '',
         shipping_zip: '',
     });
+    const [promoCode, setPromoCode] = useState('');
+    const [appliedPromo, setAppliedPromo] = useState(null);
+    const [isValidatingPromo, setIsValidatingPromo] = useState(false);
+    const [promoMessage, setPromoMessage] = useState('');
 
     const formatPrice = (price) => {
-        return new Intl.NumberFormat('en-US', {
+        return new Intl.NumberFormat('es-AR', {
             style: 'currency',
-            currency: 'USD'
+            currency: 'ARS'
         }).format(price);
     };
+
+    const IVA_RATE = 0.21;
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -33,12 +39,67 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
         }));
     };
 
+    const validatePromoCode = async () => {
+        if (!promoCode.trim()) return;
+
+        setIsValidatingPromo(true);
+        setPromoMessage('');
+
+        try {
+            const response = await fetch('/checkout/validate-promo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ code: promoCode })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                setAppliedPromo(data.promo_code);
+                setPromoMessage(data.message);
+                setPromoCode('');
+            } else {
+                setPromoMessage(data.message);
+                setAppliedPromo(null);
+            }
+        } catch (error) {
+            console.error('Error validating promo code:', error);
+            setPromoMessage('Error al validar el código promocional');
+        } finally {
+            setIsValidatingPromo(false);
+        }
+    };
+
+    const removePromoCode = () => {
+        setAppliedPromo(null);
+        setPromoMessage('');
+        setPromoCode('');
+    };
+
+    // Calcular descuento
+    const discountAmount = appliedPromo ? (subtotal * appliedPromo.discount_percentage) / 100 : 0;
+    const finalTotal = total - discountAmount;
+
+    // Calcular precios sin IVA
+    const subtotalWithoutIVA = subtotal / (1 + IVA_RATE);
+    const discountWithoutIVA = discountAmount / (1 + IVA_RATE);
+    const finalTotalWithoutIVA = finalTotal / (1 + IVA_RATE);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsProcessing(true);
 
         try {
-            console.log('Sending checkout request with data:', formData);
+            const checkoutData = {
+                ...formData,
+                promo_code_id: appliedPromo?.id || null,
+                final_total: finalTotal
+            };
+
+            console.log('Sending checkout request with data:', checkoutData);
 
             const response = await fetch('/checkout/process', {
                 method: 'POST',
@@ -46,7 +107,7 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(checkoutData)
             });
 
             console.log('Response status:', response.status);
@@ -396,6 +457,88 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                                 ))}
                             </div>
 
+                            {/* Promo Code Section */}
+                            <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: '1rem', marginBottom: '1rem' }}>
+                                <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '0.75rem' }}>
+                                    Promo Code
+                                </h3>
+
+                                {!appliedPromo ? (
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <input
+                                            type="text"
+                                            value={promoCode}
+                                            onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                                            onKeyPress={(e) => e.key === 'Enter' && validatePromoCode()}
+                                            placeholder="Enter promo code"
+                                            style={{
+                                                flex: 1,
+                                                padding: '0.5rem',
+                                                border: '1px solid #d1d5db',
+                                                borderRadius: '0.375rem',
+                                                fontSize: '0.875rem',
+                                                outline: 'none'
+                                            }}
+                                        />
+                                        <button
+                                            onClick={validatePromoCode}
+                                            disabled={isValidatingPromo || !promoCode.trim()}
+                                            style={{
+                                                backgroundColor: '#2563eb',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '0.375rem',
+                                                padding: '0.5rem 1rem',
+                                                fontSize: '0.875rem',
+                                                cursor: 'pointer',
+                                                opacity: (isValidatingPromo || !promoCode.trim()) ? 0.5 : 1
+                                            }}
+                                        >
+                                            {isValidatingPromo ? 'Validating...' : 'Apply'}
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div style={{
+                                        backgroundColor: '#dcfce7',
+                                        border: '1px solid #bbf7d0',
+                                        borderRadius: '0.375rem',
+                                        padding: '0.75rem',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center'
+                                    }}>
+                                        <div>
+                                            <span style={{ color: '#15803d', fontWeight: '500', fontSize: '0.875rem' }}>
+                                                {appliedPromo.code} - {appliedPromo.discount_percentage}% OFF
+                                            </span>
+                                        </div>
+                                        <button
+                                            onClick={removePromoCode}
+                                            style={{
+                                                color: '#dc2626',
+                                                backgroundColor: 'transparent',
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                fontSize: '0.75rem',
+                                                textDecoration: 'underline'
+                                            }}
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                )}
+
+                                {promoMessage && (
+                                    <p style={{
+                                        fontSize: '0.75rem',
+                                        marginTop: '0.5rem',
+                                        color: appliedPromo ? '#15803d' : '#dc2626'
+                                    }}>
+                                        {promoMessage}
+                                    </p>
+                                )}
+                            </div>
+
                             {/* Totals */}
                             <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: '1rem' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
@@ -403,16 +546,30 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                                     <span style={{ color: '#1f2937' }}>{formatPrice(subtotal)}</span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                    <span style={{ color: '#6b7280' }}>Shipping</span>
-                                    <span style={{ color: '#16a34a' }}>Free</span>
+                                    <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Sin IVA: {formatPrice(subtotalWithoutIVA)}</span>
                                 </div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                    <span style={{ color: '#6b7280' }}>Tax</span>
-                                    <span style={{ color: '#1f2937' }}>{formatPrice(tax)}</span>
+                                    <span style={{ color: '#6b7280' }}>Envío</span>
+                                    <span style={{ color: '#16a34a' }}>Gratis</span>
                                 </div>
+                                {appliedPromo && (
+                                    <>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                            <span style={{ color: '#15803d' }}>Descuento ({appliedPromo.discount_percentage}%)</span>
+                                            <span style={{ color: '#15803d' }}>-{formatPrice(discountAmount)}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                            <span style={{ color: '#15803d', fontSize: '0.875rem' }}>Sin IVA: -{formatPrice(discountWithoutIVA)}</span>
+                                        </div>
+                                    </>
+                                )}
                                 <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.5rem', borderTop: '1px solid #f3f4f6' }}>
                                     <span style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937' }}>Total</span>
-                                    <span style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937' }}>{formatPrice(total)}</span>
+                                    <span style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937' }}>{formatPrice(finalTotal)}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem' }}>
+                                    <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>Sin IVA: {formatPrice(finalTotalWithoutIVA)}</span>
+                                    <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>(IVA 21% incluido)</span>
                                 </div>
                             </div>
                         </div>

@@ -140,6 +140,11 @@ class OrderResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('print_order')
+                    ->label('Imprimir Orden')
+                    ->icon('heroicon-o-printer')
+                    ->url(fn($record) => route('order.print', $record))
+                    ->openUrlInNewTab(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

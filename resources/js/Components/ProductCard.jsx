@@ -2,11 +2,17 @@ import { Link } from '@inertiajs/react';
 
 export default function ProductCard({ product }) {
     const formatPrice = (price) => {
-        return new Intl.NumberFormat('en-US', {
+        return new Intl.NumberFormat('es-AR', {
             style: 'currency',
-            currency: 'USD'
+            currency: 'ARS'
         }).format(price);
     };
+
+    const IVA_RATE = 0.21;
+
+    const currentPrice = product.discount_price || product.price;
+    const priceWithoutIVA = currentPrice / (1 + IVA_RATE);
+    const priceWithIVA = currentPrice;
 
     const discountPercentage = product.discount_price
         ? Math.round(((product.price - product.discount_price) / product.price) * 100)
@@ -66,10 +72,10 @@ export default function ProductCard({ product }) {
                 )}
 
                 {/* Price */}
-                <div className="flex items-center justify-between">
+                <div className="space-y-2">
                     <div className="flex items-center space-x-2">
                         <span className="text-xl font-bold text-gray-900">
-                            {formatPrice(product.discount_price || product.price)}
+                            {formatPrice(priceWithIVA)}
                         </span>
                         {product.discount_price && (
                             <span className="text-sm text-gray-500 line-through">
@@ -78,10 +84,11 @@ export default function ProductCard({ product }) {
                         )}
                     </div>
 
-                    {/* Add to Cart Button */}
-                    <button className="btn-primary text-sm px-3 py-2">
-                        Add to Cart
-                    </button>
+                    {/* Price without IVA */}
+                    <div className="text-sm text-gray-600">
+                        <span>Sin IVA: {formatPrice(priceWithoutIVA)}</span>
+                        <span className="text-xs text-gray-500 ml-2">(IVA 21% incluido)</span>
+                    </div>
                 </div>
 
                 {/* Stock Status */}
