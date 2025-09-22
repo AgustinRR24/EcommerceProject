@@ -21,6 +21,7 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Swis\Filament\Backgrounds\FilamentBackgroundsPlugin;
 use Swis\Filament\Backgrounds\ImageProviders\MyImages;
 use ShuvroRoy\FilamentSpatieLaravelHealth\FilamentSpatieLaravelHealthPlugin;
+use Jeffgreco13\FilamentBreezy\BreezyCore;
 
 
 class AdminPanelProvider extends PanelProvider
@@ -31,6 +32,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->brandName('TechStore Admin')
             ->login()
             ->colors([
                 'primary' => Color::Amber,
@@ -68,6 +70,18 @@ class AdminPanelProvider extends PanelProvider
                             ->directory('images/login-backgrounds')
                     ),
                 FilamentSpatieLaravelHealthPlugin::make(),
+                BreezyCore::make()
+                    ->myProfile(
+                        shouldRegisterUserMenu: true,
+                        userMenuLabel: 'Mi Perfil',
+                        shouldRegisterNavigation: false,
+                        navigationGroup: 'Configuración',
+                        hasAvatars: false,
+                        slug: 'my-profile'
+                    )
+                    ->enableTwoFactorAuthentication(
+                        force: false
+                    ),
             ]);
     }
 }

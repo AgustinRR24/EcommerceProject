@@ -20,6 +20,7 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Swis\Filament\Backgrounds\FilamentBackgroundsPlugin;
 use Swis\Filament\Backgrounds\ImageProviders\MyImages;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use Jeffgreco13\FilamentBreezy\BreezyCore;
 
 
 class CustomersPanelProvider extends PanelProvider
@@ -65,6 +66,18 @@ class CustomersPanelProvider extends PanelProvider
                     ->imageProvider(
                         MyImages::make()
                             ->directory('images/login-backgrounds')
+                    ),
+                BreezyCore::make()
+                    ->myProfile(
+                        shouldRegisterUserMenu: true,
+                        userMenuLabel: 'Mi Perfil',
+                        shouldRegisterNavigation: false,
+                        navigationGroup: 'Configuración',
+                        hasAvatars: false,
+                        slug: 'my-profile'
+                    )
+                    ->enableTwoFactorAuthentication(
+                        force: false
                     ),
             ]);
     }
