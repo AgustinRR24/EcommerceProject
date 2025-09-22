@@ -8,8 +8,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Filament\Panel;
+use Filament\Models\Contracts\FilamentUser;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasRoles;
@@ -61,10 +62,14 @@ class User extends Authenticatable
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return match ($panel->getId()) {
-            'admin' => $this->hasRole('super_admin'),
-            'customers' => $this->hasRole('panel_user'),
-            default => false,
-        };
+        if ($panel->getId() === 'admin') {
+            return $this->hasRole('super_admin');
+        }
+
+        if ($panel->getId() === 'customers') {
+            return $this->hasRole('panel_user');
+        }
+
+        return false;
     }
 }
