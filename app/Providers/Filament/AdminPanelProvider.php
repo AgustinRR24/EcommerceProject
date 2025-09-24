@@ -22,6 +22,7 @@ use Swis\Filament\Backgrounds\FilamentBackgroundsPlugin;
 use Swis\Filament\Backgrounds\ImageProviders\MyImages;
 use ShuvroRoy\FilamentSpatieLaravelHealth\FilamentSpatieLaravelHealthPlugin;
 use Jeffgreco13\FilamentBreezy\BreezyCore;
+use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
 
 
 class AdminPanelProvider extends PanelProvider
@@ -44,6 +45,15 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
+                \App\Filament\Widgets\TotalRevenueStats::class,
+                \App\Filament\Widgets\OrdersStats::class,
+                \App\Filament\Widgets\CustomersStats::class,
+                \App\Filament\Widgets\ProductsStats::class,
+                \App\Filament\Widgets\WeekSalesChart::class,
+                \App\Filament\Widgets\MonthlySalesChart::class,
+                \App\Filament\Widgets\TopProductsChart::class,
+                \App\Filament\Widgets\OrderStatusChart::class,
+                \App\Filament\Widgets\CategorySalesChart::class,
                 //Widgets\AccountWidget::class,
                 //Widgets\FilamentInfoWidget::class,
             ])
@@ -64,6 +74,7 @@ class AdminPanelProvider extends PanelProvider
             ->authGuard('web')
             ->plugins([
                 FilamentShieldPlugin::make(),
+                FilamentApexChartsPlugin::make(),
                 FilamentBackgroundsPlugin::make()
                     ->imageProvider(
                         MyImages::make()

@@ -3,6 +3,10 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Auth\Events\Registered;
+use Filament\Events\Auth\Registered as FilamentRegistered;
+use App\Listeners\AssignRoleOnRegistration;
 use Spatie\Health\Facades\Health;
 //use Spatie\Health\Checks\Checks\CpuLoadCheck;
 use Spatie\Health\Checks\Checks\DatabaseCheck;
@@ -37,7 +41,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        
+        Event::listen(
+            Registered::class,
+            AssignRoleOnRegistration::class,
+        );
+
+        Event::listen(
+            FilamentRegistered::class,
+            function (FilamentRegistered $event) {
+                $event->getUser()->assignRole('panel_user');
+            }
+        );
+
         LanguageSwitch::configureUsing(function (LanguageSwitch $switch) {
             $switch
                 ->locales(['en', 'es', 'pt_BR']); // Inglés y Español
