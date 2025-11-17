@@ -54,3 +54,8 @@ Route::get('/order/{order}/print', function(\App\Models\Order $order) {
 // Nuevas rutas para páginas adicionales
 Route::get('/hotsale', [\App\Http\Controllers\LandingController::class, 'hotsale'])->name('hotsale');
 Route::get('/about', [\App\Http\Controllers\LandingController::class, 'about'])->name('about');
+
+// Páginas legales
+Route::get('/terms', [\App\Http\Controllers\LegalController::class, 'terms'])->name('terms');
+Route::get('/privacy', [\App\Http\Controllers\LegalController::class, 'privacy'])->name('privacy');
+Route::get('/legal', [\App\Http\Controllers\LegalController::class, 'legal'])->name('legal');

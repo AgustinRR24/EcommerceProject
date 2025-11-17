@@ -37,6 +37,7 @@ class CustomersPanelProvider extends PanelProvider
             ->login()
             ->registration()
             ->profile()
+            ->authGuard('web')
             ->discoverResources(in: app_path('Filament/Customers/Resources'), for: 'App\\Filament\\Customers\\Resources')
             ->discoverPages(in: app_path('Filament/Customers/Pages'), for: 'App\\Filament\\Customers\\Pages')
             ->pages([

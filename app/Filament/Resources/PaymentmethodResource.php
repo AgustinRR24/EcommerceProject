@@ -17,17 +17,32 @@ class PaymentMethodResource extends Resource
 {
     protected static ?string $model = PaymentMethod::class;
 
+    protected static ?string $navigationLabel = 'Métodos de Pago';
+
+    protected static ?string $modelLabel = 'Método de Pago';
+
+    protected static ?string $pluralModelLabel = 'Métodos de Pago';
+
     protected static ?string $navigationIcon = 'heroicon-o-credit-card';
 
-    protected static ?string $navigationGroup = 'Settings';
+    protected static ?string $navigationGroup = 'Configuración';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->required()
-                    ->maxLength(255),
+                Forms\Components\Section::make('Información del Método de Pago')
+                    ->description('Configure el método de pago disponible')
+                    ->schema([
+                        Forms\Components\TextInput::make('name')
+                            ->label('Nombre del Método')
+                            ->required()
+                            ->maxLength(255)
+                            ->placeholder('MercadoPago, Tarjeta de Crédito, etc.')
+                            ->helperText('Nombre descriptivo del método de pago')
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible(),
             ]);
     }
 
@@ -36,13 +51,21 @@ class PaymentMethodResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
+                    ->label('Nombre del Método')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold')
+                    ->badge()
+                    ->color('primary')
+                    ->icon('heroicon-o-credit-card'),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label('Creado')
+                    ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->label('Actualizado')
+                    ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -50,13 +73,16 @@ class PaymentMethodResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->defaultSort('name', 'asc');
     }
 
     public static function getRelations(): array

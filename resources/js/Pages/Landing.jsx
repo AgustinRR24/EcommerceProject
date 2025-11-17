@@ -25,7 +25,7 @@ export default function Landing({ products, categories, brands, filters = {} }) 
         }, {});
 
         // Update URL with filters
-        router.get('/', cleanFilters, {
+        router.get('/products', cleanFilters, {
             preserveState: true,
             preserveScroll: true,
         });
@@ -48,7 +48,7 @@ export default function Landing({ products, categories, brands, filters = {} }) 
             brands: [],
             search: ''
         });
-        router.get('/');
+        router.get('/products');
     };
 
     return (
@@ -111,17 +111,24 @@ export default function Landing({ products, categories, brands, filters = {} }) 
 
                         {/* Search Bar */}
                         <div style={{ position: 'relative', maxWidth: '28rem' }}>
+                            <style>{`
+                                .hero-search::placeholder {
+                                    color: rgba(255, 255, 255, 0.7);
+                                }
+                            `}</style>
                             <input
                                 type="text"
                                 placeholder="Search products..."
                                 value={localFilters.search}
                                 onChange={(e) => handleFilterChange('search', e.target.value)}
+                                className="hero-search"
                                 style={{
                                     width: '100%',
                                     padding: '12px 16px 12px 48px',
                                     borderRadius: '8px',
-                                    color: '#1f2937',
-                                    border: 'none',
+                                    color: '#ffffff',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                                    border: '2px solid #ffffff',
                                     outline: 'none',
                                     fontSize: '16px'
                                 }}
@@ -134,7 +141,7 @@ export default function Landing({ products, categories, brands, filters = {} }) 
                                     transform: 'translateY(-50%)',
                                     width: '20px',
                                     height: '20px',
-                                    color: '#9ca3af'
+                                    color: '#ffffff'
                                 }}
                                 fill="none"
                                 stroke="currentColor"

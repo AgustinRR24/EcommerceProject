@@ -12,7 +12,7 @@ export default function About() {
         {
             name: 'María González',
             role: 'CEO & Fundadora',
-            image: 'https://images.unsplash.com/photo-1494790108755-2616b612b000?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80',
+            image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=688&q=80',
             description: 'Visionaria en tecnología con más de 15 años de experiencia en el sector.'
         },
         {
@@ -75,23 +75,23 @@ export default function About() {
             </section>
 
             {/* Stats Section */}
-            <section className="py-20 bg-brand-600">
+            <section className="py-20 bg-white">
                 <div className="container-main">
                     <div className="text-center mb-12">
-                        <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+                        <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
                             Nuestros Números
                         </h2>
-                        <p className="text-xl text-brand-100">
+                        <p className="text-xl text-gray-600">
                             Cifras que respaldan nuestro compromiso con la excelencia
                         </p>
                     </div>
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
                         {stats.map((stat, index) => (
                             <div key={index} className="text-center">
-                                <div className="text-4xl lg:text-5xl font-bold text-white mb-2">
+                                <div className="text-4xl lg:text-5xl font-bold text-gray-900 mb-2">
                                     {stat.number}
                                 </div>
-                                <div className="text-brand-100 font-medium">
+                                <div className="text-gray-600 font-medium">
                                     {stat.label}
                                 </div>
                             </div>

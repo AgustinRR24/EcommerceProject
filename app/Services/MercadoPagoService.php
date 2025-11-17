@@ -4,7 +4,6 @@ namespace App\Services;
 
 use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Client\Preference\PreferenceClient;
-use MercadoPago\Resources\Preference;
 use MercadoPago\Exceptions\MPApiException;
 use Illuminate\Support\Facades\Log;
 
@@ -38,14 +37,15 @@ class MercadoPagoService
                 "items" => $items
             ];
 
-            // Agregar URLs de retorno si se proporcionan (sin auto_return por problemas de compatibilidad)
-            if ($backUrls) {
-                $preferenceData["back_urls"] = $backUrls;
-            }
-
             // Agregar referencia externa si se proporciona
             if ($externalReference) {
                 $preferenceData["external_reference"] = $externalReference;
+            }
+
+            // Agregar URLs de retorno
+            // NOTA: auto_return no funciona con localhost en sandbox, se removió
+            if ($backUrls) {
+                $preferenceData["back_urls"] = $backUrls;
             }
 
             // Agregar configuración de notificaciones (solo si no es localhost)

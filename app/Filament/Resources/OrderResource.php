@@ -3,83 +3,178 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\OrderResource\Pages;
-use App\Filament\Resources\OrderResource\RelationManagers;
 use App\Models\Order;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class OrderResource extends Resource
 {
     protected static ?string $model = Order::class;
 
+    protected static ?string $navigationLabel = 'Órdenes';
+
+    protected static ?string $modelLabel = 'Orden';
+
+    protected static ?string $pluralModelLabel = 'Órdenes';
+
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
 
-    protected static ?string $navigationGroup = 'Sales';
+    protected static ?string $navigationGroup = 'Ventas';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('user_id')
-                    ->relationship('user', 'name')
-                    ->required(),
-                Forms\Components\TextInput::make('order_number')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('status')
-                    ->required()
-                    ->maxLength(255)
-                    ->default('pending'),
-                Forms\Components\TextInput::make('subtotal')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\Select::make('promo_code_id')
-                    ->relationship('promoCode', 'code')
-                    ->label('Promo Code')
-                    ->nullable(),
-                Forms\Components\TextInput::make('discount')
-                    ->required()
-                    ->numeric()
-                    ->default(0.00),
-                Forms\Components\TextInput::make('tax')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('total')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('payment_method')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('payment_status')
-                    ->required()
-                    ->maxLength(255)
-                    ->default('pending'),
-                Forms\Components\TextInput::make('shipping_address')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('shipping_city')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('shipping_state')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('shipping_country')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('shipping_zipcode')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('shipping_phone')
-                    ->tel()
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\Textarea::make('notes')
-                    ->columnSpanFull(),
+                Forms\Components\Section::make('Información de la Orden')
+                    ->description('Datos básicos de la orden')
+                    ->schema([
+                        Forms\Components\Select::make('user_id')
+                            ->label('Cliente')
+                            ->relationship('user', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->columnSpan(1),
+                        Forms\Components\TextInput::make('order_number')
+                            ->label('Número de Orden')
+                            ->required()
+                            ->maxLength(255)
+                            ->unique(ignoreRecord: true)
+                            ->columnSpan(1),
+                        Forms\Components\Select::make('status')
+                            ->label('Estado de la Orden')
+                            ->options([
+                                'pending' => 'Pendiente',
+                                'processing' => 'Procesando',
+                                'completed' => 'Completada',
+                                'cancelled' => 'Cancelada',
+                            ])
+                            ->required()
+                            ->default('pending')
+                            ->columnSpan(1),
+                        Forms\Components\Select::make('payment_status')
+                            ->label('Estado de Pago')
+                            ->options([
+                                'pending' => 'Pendiente',
+                                'approved' => 'Aprobado',
+                                'rejected' => 'Rechazado',
+                                'cancelled' => 'Cancelado',
+                            ])
+                            ->required()
+                            ->default('pending')
+                            ->columnSpan(1),
+                        Forms\Components\Select::make('payment_method')
+                            ->label('Método de Pago')
+                            ->options([
+                                'mercadopago' => 'MercadoPago',
+                                'cash' => 'Efectivo',
+                                'credit_card' => 'Tarjeta de Crédito',
+                                'debit_card' => 'Tarjeta de Débito',
+                            ])
+                            ->required()
+                            ->columnSpan(1),
+                        Forms\Components\Select::make('promo_code_id')
+                            ->relationship('promoCode', 'code')
+                            ->label('Código Promocional')
+                            ->searchable()
+                            ->nullable()
+                            ->columnSpan(1),
+                    ])
+                    ->columns(3)
+                    ->collapsible(),
+
+                Forms\Components\Section::make('Montos')
+                    ->description('Detalle de precios')
+                    ->schema([
+                        Forms\Components\TextInput::make('subtotal')
+                            ->label('Subtotal')
+                            ->required()
+                            ->numeric()
+                            ->prefix('$')
+                            ->disabled()
+                            ->dehydrated()
+                            ->columnSpan(1),
+                        Forms\Components\TextInput::make('discount')
+                            ->label('Descuento')
+                            ->numeric()
+                            ->prefix('$')
+                            ->default(0.00)
+                            ->disabled()
+                            ->dehydrated()
+                            ->columnSpan(1),
+                        Forms\Components\TextInput::make('tax')
+                            ->label('Impuesto')
+                            ->required()
+                            ->numeric()
+                            ->prefix('$')
+                            ->disabled()
+                            ->dehydrated()
+                            ->columnSpan(1),
+                        Forms\Components\TextInput::make('total')
+                            ->label('Total')
+                            ->required()
+                            ->numeric()
+                            ->prefix('$')
+                            ->disabled()
+                            ->dehydrated()
+                            ->extraAttributes(['class' => 'font-bold'])
+                            ->columnSpan(1),
+                    ])
+                    ->columns(4)
+                    ->collapsible(),
+
+                Forms\Components\Section::make('Información de Envío')
+                    ->description('Datos de entrega')
+                    ->schema([
+                        Forms\Components\TextInput::make('shipping_address')
+                            ->label('Dirección')
+                            ->required()
+                            ->maxLength(255)
+                            ->columnSpan(2),
+                        Forms\Components\TextInput::make('shipping_city')
+                            ->label('Ciudad')
+                            ->required()
+                            ->maxLength(255)
+                            ->columnSpan(1),
+                        Forms\Components\TextInput::make('shipping_state')
+                            ->label('Provincia/Estado')
+                            ->required()
+                            ->maxLength(255)
+                            ->columnSpan(1),
+                        Forms\Components\TextInput::make('shipping_country')
+                            ->label('País')
+                            ->required()
+                            ->maxLength(255)
+                            ->default('Argentina')
+                            ->columnSpan(1),
+                        Forms\Components\TextInput::make('shipping_zipcode')
+                            ->label('Código Postal')
+                            ->required()
+                            ->maxLength(255)
+                            ->columnSpan(1),
+                        Forms\Components\TextInput::make('shipping_phone')
+                            ->label('Teléfono')
+                            ->tel()
+                            ->required()
+                            ->maxLength(255)
+                            ->columnSpan(1),
+                    ])
+                    ->columns(3)
+                    ->collapsible(),
+
+                Forms\Components\Section::make('Notas Adicionales')
+                    ->schema([
+                        Forms\Components\Textarea::make('notes')
+                            ->label('Notas')
+                            ->rows(3)
+                            ->placeholder('Observaciones o instrucciones especiales...')
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
             ]);
     }
 
@@ -87,70 +182,167 @@ class OrderResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('user.name')
-                    ->label('Customer')
-                    ->searchable()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('order_number')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('status')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('subtotal')
-                    ->numeric()
+                    ->label('Número de Orden')
+                    ->searchable()
+                    ->sortable()
+                    ->copyable()
+                    ->copyMessage('Número copiado')
+                    ->weight('bold'),
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('Cliente')
+                    ->searchable()
+                    ->sortable()
+                    ->description(fn (Order $record): string => $record->user->email ?? ''),
+                Tables\Columns\BadgeColumn::make('status')
+                    ->label('Estado')
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'pending' => 'Pendiente',
+                        'completed' => 'Completada',
+                        'cancelled' => 'Cancelada',
+                        'processing' => 'Procesando',
+                        default => ucfirst($state),
+                    })
+                    ->colors([
+                        'warning' => 'pending',
+                        'success' => 'completed',
+                        'danger' => 'cancelled',
+                        'info' => 'processing',
+                    ])
                     ->sortable(),
-                Tables\Columns\TextColumn::make('promoCode.code')
-                    ->label('Promo Code')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('discount')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('tax')
-                    ->numeric()
+                Tables\Columns\BadgeColumn::make('payment_status')
+                    ->label('Pago')
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'pending' => 'Pendiente',
+                        'approved' => 'Aprobado',
+                        'rejected' => 'Rechazado',
+                        'cancelled' => 'Cancelado',
+                        default => ucfirst($state),
+                    })
+                    ->colors([
+                        'warning' => 'pending',
+                        'success' => 'approved',
+                        'danger' => 'rejected',
+                        'gray' => 'cancelled',
+                    ])
                     ->sortable(),
                 Tables\Columns\TextColumn::make('total')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('payment_method')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('payment_status')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('shipping_address')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('shipping_city')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('shipping_state')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('shipping_country')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('shipping_zipcode')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('shipping_phone')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label('Total')
+                    ->money('ARS')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->weight('bold')
+                    ->description(fn (Order $record): ?string =>
+                        $record->discount > 0 ? "Descuento: $" . number_format($record->discount, 2) : null
+                    ),
+                Tables\Columns\TextColumn::make('payment_method')
+                    ->label('Método de Pago')
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'mercadopago' => 'MercadoPago',
+                        'cash' => 'Efectivo',
+                        'credit_card' => 'Tarjeta de Crédito',
+                        'debit_card' => 'Tarjeta de Débito',
+                        default => ucfirst($state),
+                    })
+                    ->badge()
+                    ->color('info')
+                    ->icon('heroicon-o-credit-card')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('shipping_city')
+                    ->label('Ciudad')
+                    ->searchable()
+                    ->toggleable()
+                    ->description(fn (Order $record): string => $record->shipping_state),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Fecha')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->description(fn (Order $record): string => $record->created_at->diffForHumans()),
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->label('Actualizado')
+                    ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('Estado')
+                    ->options([
+                        'pending' => 'Pendiente',
+                        'processing' => 'Procesando',
+                        'completed' => 'Completada',
+                        'cancelled' => 'Cancelada',
+                    ]),
+                Tables\Filters\SelectFilter::make('payment_status')
+                    ->label('Estado de Pago')
+                    ->options([
+                        'pending' => 'Pendiente',
+                        'approved' => 'Aprobado',
+                        'rejected' => 'Rechazado',
+                        'cancelled' => 'Cancelado',
+                    ]),
+                Tables\Filters\SelectFilter::make('payment_method')
+                    ->label('Método de Pago')
+                    ->options([
+                        'mercadopago' => 'MercadoPago',
+                        'cash' => 'Efectivo',
+                        'credit_card' => 'Tarjeta de Crédito',
+                        'debit_card' => 'Tarjeta de Débito',
+                    ]),
+                Tables\Filters\Filter::make('con_descuento')
+                    ->label('Con descuento')
+                    ->query(fn ($query) => $query->where('discount', '>', 0)),
+                Tables\Filters\Filter::make('created_at')
+                    ->form([
+                        Forms\Components\DatePicker::make('desde')
+                            ->label('Desde'),
+                        Forms\Components\DatePicker::make('hasta')
+                            ->label('Hasta'),
+                    ])
+                    ->query(function ($query, array $data) {
+                        return $query
+                            ->when($data['desde'], fn ($query, $date) => $query->whereDate('created_at', '>=', $date))
+                            ->when($data['hasta'], fn ($query, $date) => $query->whereDate('created_at', '<=', $date));
+                    }),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->label('Ver')
+                    ->modalHeading(fn (Order $record): string => "Orden #{$record->order_number}")
+                    ->modalContent(fn (Order $record): \Illuminate\View\View => view(
+                        'filament.customers.resources.order.view-order',
+                        ['record' => $record]
+                    ))
+                    ->modalWidth('3xl'),
+                Tables\Actions\EditAction::make()
+                    ->label('Editar'),
                 Tables\Actions\Action::make('print_order')
-                    ->label('Imprimir Orden')
+                    ->label('Imprimir')
                     ->icon('heroicon-o-printer')
+                    ->color('success')
                     ->url(fn($record) => route('order.print', $record))
                     ->openUrlInNewTab(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('marcar_completadas')
+                        ->label('Marcar como completadas')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->action(fn ($records) => $records->each->update(['status' => 'completed']))
+                        ->deselectRecordsAfterCompletion(),
+                    Tables\Actions\BulkAction::make('marcar_procesando')
+                        ->label('Marcar como procesando')
+                        ->icon('heroicon-o-arrow-path')
+                        ->color('info')
+                        ->requiresConfirmation()
+                        ->action(fn ($records) => $records->each->update(['status' => 'processing']))
+                        ->deselectRecordsAfterCompletion(),
                 ]),
-            ]);
+            ])
+            ->defaultSort('created_at', 'desc');
     }
 
     public static function getRelations(): array

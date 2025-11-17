@@ -1,61 +1,199 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# E-commerce Project
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema de comercio electrónico desarrollado con Laravel 11, Filament 3 e Inertia.js + React.
 
-## About Laravel
+## Configuración del Proyecto
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### Requisitos
+- PHP 8.2+
+- Composer
+- Node.js 18+
+- MySQL
+- XAMPP (para desarrollo local)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Instalación
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1. Clonar el repositorio
+2. Copiar `.env.example` a `.env` y configurar las variables de entorno
+3. Instalar dependencias:
+```bash
+composer install
+npm install
+```
 
-## Learning Laravel
+4. Generar key de aplicación:
+```bash
+php artisan key:generate
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+5. Ejecutar migraciones:
+```bash
+php artisan migrate --seed
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+6. Crear enlace simbólico de storage:
+```bash
+php artisan storage:link
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+7. Compilar assets:
+```bash
+npm run dev
+# o para producción
+npm run build
+```
 
-## Laravel Sponsors
+## Desarrollo Local
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Iniciar servidores
 
-### Premium Partners
+**Opción 1: Usando npm (puede tener problemas de permisos en Windows)**
+```bash
+npm run dev
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+**Opción 2: Usando Node directamente**
+```bash
+node node_modules/vite/bin/vite.js
+```
 
-## Contributing
+**Opción 3: Usando el archivo batch (solo Windows)**
+```bash
+.\dev.bat
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Servidor Laravel
+```bash
+php artisan serve
+```
 
-## Code of Conduct
+El proyecto estará disponible en `http://127.0.0.1:8000`
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Estructura del Proyecto
 
-## Security Vulnerabilities
+### Paneles de Administración
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- **Panel Admin**: `http://127.0.0.1:8000/admin`
+  - Gestión completa del e-commerce
+  - Usuarios, productos, categorías, órdenes, etc.
+  - Autenticación con guard `web`
 
-## License
+- **Panel Customers**: `http://127.0.0.1:8000/customer`
+  - Portal para clientes
+  - Ver órdenes, perfil, historial
+  - Autenticación con guard `web`
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Frontend (React + Inertia)
+
+- **Landing**: `http://127.0.0.1:8000/`
+- **Productos**: `http://127.0.0.1:8000/products`
+- **Carrito**: `http://127.0.0.1:8000/cart`
+- **Checkout**: `http://127.0.0.1:8000/checkout`
+
+## Integración con MercadoPago
+
+### Configuración
+
+Agregar en `.env`:
+```env
+MERCADOPAGO_ACCESS_TOKEN=tu_access_token
+MERCADOPAGO_PUBLIC_KEY=tu_public_key
+```
+
+### Flujo de Pago en Desarrollo (Localhost)
+
+**IMPORTANTE**: El auto-redirect de MercadoPago NO funciona con `localhost` o `127.0.0.1` en modo sandbox.
+
+#### Proceso de pago en desarrollo:
+
+1. **Realizar compra**: Agregar productos al carrito y proceder al checkout
+2. **Pagar en MercadoPago**: Completar el pago en la ventana de MercadoPago
+3. **Procesar el pago manualmente**: Después de pagar, MercadoPago NO te redirigirá automáticamente
+
+#### Cómo completar una orden en desarrollo:
+
+**Opción 1: URL Manual (Recomendado)**
+
+Después de pagar en MercadoPago, acceder manualmente a:
+
+```
+http://127.0.0.1:8000/checkout/success?payment_id=PAYMENT_ID&status=approved&external_reference=ORDER_NUMBER
+```
+
+Donde:
+- `PAYMENT_ID`: El ID que MercadoPago muestra después del pago (ej: `133468507383`)
+- `ORDER_NUMBER`: El número de orden generado (ej: `ORD-0b6c8b04-cf05-4524-aa8f-708`)
+
+**Ejemplo completo:**
+```
+http://127.0.0.1:8000/checkout/success?payment_id=133468507383&status=approved&external_reference=ORD-0b6c8b04-cf05-4524-aa8f-708
+```
+
+**Opción 2: Desde la Base de Datos**
+
+1. Buscar la última orden creada en la tabla `orders`
+2. Copiar el `order_number`
+3. Usar la URL del ejemplo anterior reemplazando los valores
+
+**Opción 3: Desde el Panel Admin**
+
+1. Ir a `http://127.0.0.1:8000/admin/orders`
+2. Buscar la orden con estado `pending`
+3. Cambiar manualmente el estado a `completed`
+
+### Flujo en Producción
+
+En producción, con un dominio real (no localhost), el auto-redirect funcionará correctamente y el usuario será redirigido automáticamente después del pago.
+
+## Solución de Problemas Comunes
+
+### Error "This page has expired" en login
+
+**Causa**: Sesiones corruptas o cookies antiguas
+
+**Solución**:
+1. Limpiar cookies del navegador para `127.0.0.1:8000`
+2. O usar modo incógnito
+3. Ejecutar:
+```bash
+php artisan optimize:clear
+php artisan config:cache
+```
+
+### Imágenes no se muestran después de cambiar nombre del proyecto
+
+**Causa**: El enlace simbólico de storage apunta al path antiguo
+
+**Solución**:
+```bash
+# Eliminar enlace antiguo
+rm public/storage
+# En Windows CMD:
+# del public\storage
+
+# Crear nuevo enlace
+php artisan storage:link
+```
+
+### Problemas con npm run dev en PowerShell
+
+**Causa**: Política de ejecución de scripts deshabilitada en Windows
+
+**Solución 1**: Cambiar política (PowerShell como administrador):
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+**Solución 2**: Usar el archivo batch:
+```bash
+.\dev.bat
+```
+
+**Solución 3**: Usar Node directamente:
+```bash
+node node_modules/vite/bin/vite.js
+```
+
+## Licencia
+
+Este proyecto es de código abierto bajo la licencia MIT.

@@ -148,6 +148,7 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
         if (showWallet && preferenceId && publicKey) {
             if (!window.MercadoPago) {
                 console.error('MercadoPago SDK not loaded');
+                alert('Error: MercadoPago SDK no está cargado. Por favor recarga la página.');
                 return;
             }
 
@@ -162,20 +163,32 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                     const container = document.getElementById("walletBrick_container");
                     if (container) {
                         container.innerHTML = '';
+                    } else {
+                        console.error('Container walletBrick_container not found');
+                        return;
                     }
 
                     await bricksBuilder.create("wallet", "walletBrick_container", {
                         initialization: {
                             preferenceId: preferenceId,
-                        }
+                        },
+                        customization: {
+                            texts: {
+                                valueProp: 'smart_option',
+                            },
+                        },
                     });
                     console.log('Wallet brick created successfully');
                 } catch (error) {
                     console.error('Error creating wallet brick:', error);
+                    alert('Error al cargar el botón de pago. Por favor intenta nuevamente.');
                 }
             };
 
-            renderWalletBrick();
+            // Pequeño delay para asegurar que el DOM está listo
+            setTimeout(() => {
+                renderWalletBrick();
+            }, 100);
         }
     }, [showWallet, preferenceId, publicKey]);
 

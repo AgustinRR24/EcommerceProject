@@ -10,26 +10,36 @@ export default function Layout({ children }) {
         const fetchCartCount = async () => {
             try {
                 const response = await fetch('/cart/count');
-                const data = await response.json();
-                setCartCount(data.count || 0);
+                if (response.ok) {
+                    const data = await response.json();
+                    setCartCount(data.count || 0);
+                } else {
+                    setCartCount(0);
+                }
             } catch (error) {
-                console.error('Error fetching cart count:', error);
+                // Silently fail for unauthenticated users
                 setCartCount(0);
             }
         };
 
         // Función para actualizar precios del carrito
         const updateCartPrices = async () => {
+            // Skip if no CSRF token (user not authenticated)
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if (!csrfToken) {
+                return;
+            }
+
             try {
                 await fetch('/cart/update-prices', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                        'X-CSRF-TOKEN': csrfToken
                     }
                 });
             } catch (error) {
-                console.error('Error updating cart prices:', error);
+                // Silently fail
             }
         };
 
@@ -61,25 +71,25 @@ export default function Layout({ children }) {
                                 href="/"
                                 className="text-gray-300 hover:text-white font-medium transition-colors"
                             >
-                                Home
+                                Inicio
                             </Link>
                             <Link
                                 href="/products"
                                 className="text-gray-300 hover:text-white font-medium transition-colors"
                             >
-                                Products
+                                Productos
                             </Link>
                             <Link
                                 href="/hotsale"
                                 className="text-gray-300 hover:text-white font-medium transition-colors"
                             >
-                                Hot Sale
+                                Ofertas
                             </Link>
                             <Link
                                 href="/about"
                                 className="text-gray-300 hover:text-white font-medium transition-colors"
                             >
-                                About
+                                Nosotros
                             </Link>
                         </nav>
 
@@ -119,19 +129,19 @@ export default function Layout({ children }) {
                         <div className="md:hidden py-4 border-t border-gray-800">
                             <div className="flex flex-col space-y-3">
                                 <Link href="/" className="text-gray-300 hover:text-white font-medium">
-                                    Home
+                                    Inicio
                                 </Link>
                                 <Link href="/products" className="text-gray-300 hover:text-white font-medium">
-                                    Products
+                                    Productos
                                 </Link>
                                 <Link href="/hotsale" className="text-gray-300 hover:text-white font-medium">
-                                    Hot Sale
+                                    Ofertas
                                 </Link>
                                 <Link href="/about" className="text-gray-300 hover:text-white font-medium">
-                                    About
+                                    Nosotros
                                 </Link>
                                 <Link href="/customer" className="text-gray-300 hover:text-white font-medium">
-                                    Profile
+                                    Perfil
                                 </Link>
                             </div>
                         </div>
@@ -157,10 +167,10 @@ export default function Layout({ children }) {
                         <div>
                             <h4 className="font-semibold text-white mb-4">Enlaces Rápidos</h4>
                             <ul className="space-y-2">
-                                <li><Link href="/" className="text-gray-400 hover:text-white transition-colors">Home</Link></li>
-                                <li><Link href="/products" className="text-gray-400 hover:text-white transition-colors">Products</Link></li>
-                                <li><Link href="/hotsale" className="text-gray-400 hover:text-white transition-colors">Hot Sale</Link></li>
-                                <li><Link href="/about" className="text-gray-400 hover:text-white transition-colors">About</Link></li>
+                                <li><Link href="/" className="text-gray-400 hover:text-white transition-colors">Inicio</Link></li>
+                                <li><Link href="/products" className="text-gray-400 hover:text-white transition-colors">Productos</Link></li>
+                                <li><Link href="/hotsale" className="text-gray-400 hover:text-white transition-colors">Ofertas</Link></li>
+                                <li><Link href="/about" className="text-gray-400 hover:text-white transition-colors">Nosotros</Link></li>
                             </ul>
                         </div>
                         <div>
