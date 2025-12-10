@@ -95,20 +95,27 @@ class UserResource extends Resource
                     ->badge()
                     ->color('success')
                     ->separator(',')
-                    ->searchable(),
-                Tables\Columns\IconColumn::make('email_verified_at')
-                    ->label('Email Verificado')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-check-badge')
-                    ->falseIcon('heroicon-o-x-circle')
-                    ->trueColor('success')
-                    ->falseColor('warning')
-                    ->sortable()
-                    ->tooltip(fn (User $record): string =>
-                        $record->email_verified_at
-                            ? 'Verificado el ' . $record->email_verified_at->format('d/m/Y H:i')
-                            : 'No verificado'
-                    ),
+                    ->searchable()
+                    ->formatStateUsing(function ($state) {
+                        return match($state) {
+                            'panel_user' => 'Cliente',
+                            'super_admin' => 'Administrador',
+                            default => ucfirst(str_replace('_', ' ', $state))
+                        };
+                    }),
+                //Tables\Columns\IconColumn::make('email_verified_at')
+                //    ->label('Email Verificado')
+                //    ->boolean()
+                //    ->trueIcon('heroicon-o-check-badge')
+                //    ->falseIcon('heroicon-o-x-circle')
+                //    ->trueColor('success')
+                //    ->falseColor('warning')
+                //    ->sortable()
+                //    ->tooltip(fn (User $record): string =>
+                //        $record->email_verified_at
+                //            ? 'Verificado el ' . $record->email_verified_at->format('d/m/Y H:i')
+                //            : 'No verificado'
+                //    ),
                 Tables\Columns\TextColumn::make('orders_count')
                     ->label('Órdenes')
                     ->counts('orders')
@@ -127,20 +134,25 @@ class UserResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\TernaryFilter::make('email_verified_at')
-                    ->label('Email Verificado')
-                    ->placeholder('Todos los usuarios')
-                    ->trueLabel('Solo verificados')
-                    ->falseLabel('Solo no verificados')
-                    ->queries(
-                        true: fn ($query) => $query->whereNotNull('email_verified_at'),
-                        false: fn ($query) => $query->whereNull('email_verified_at'),
-                    ),
+                //Tables\Filters\TernaryFilter::make('email_verified_at')
+                //    ->label('Email Verificado')
+                //    ->placeholder('Todos los usuarios')
+                //    ->trueLabel('Solo verificados')
+                //    ->falseLabel('Solo no verificados')
+                //    ->queries(
+                //        true: fn ($query) => $query->whereNotNull('email_verified_at'),
+                //        false: fn ($query) => $query->whereNull('email_verified_at'),
+                //    ),
                 Tables\Filters\SelectFilter::make('roles')
                     ->label('Rol')
                     ->relationship('roles', 'name')
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->getOptionLabelFromRecordUsing(fn ($record) => match($record->name) {
+                        'panel_user' => 'Cliente',
+                        'super_admin' => 'Administrador',
+                        default => ucfirst(str_replace('_', ' ', $record->name))
+                    }),
                 Tables\Filters\Filter::make('con_ordenes')
                     ->label('Con órdenes')
                     ->query(fn ($query) => $query->has('orders')),

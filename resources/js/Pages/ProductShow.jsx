@@ -40,6 +40,11 @@ export default function ProductShow({ product }) {
                         message: '¡Producto agregado al carrito! 🛒',
                         type: 'success'
                     });
+                    // Actualizar contador local inmediatamente
+                    const currentCount = parseInt(localStorage.getItem('cartCount') || '0', 10);
+                    localStorage.setItem('cartCount', (currentCount + quantity).toString());
+                    // Disparar evento personalizado para actualizar el contador del carrito
+                    window.dispatchEvent(new Event('cartUpdated'));
                 },
                 onError: (error) => {
                     console.error('Error:', error);
@@ -66,9 +71,9 @@ export default function ProductShow({ product }) {
             <div className="container-main py-8">
                 {/* Breadcrumb */}
                 <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-8">
-                    <Link href="/" className="hover:text-brand-600">Home</Link>
+                    <Link href="/" className="hover:text-brand-600">Inicio</Link>
                     <span>/</span>
-                    <Link href="/" className="hover:text-brand-600">Products</Link>
+                    <Link href="/" className="hover:text-brand-600">Productos</Link>
                     <span>/</span>
                     <span className="text-gray-900">{product.name}</span>
                 </nav>
@@ -81,6 +86,8 @@ export default function ProductShow({ product }) {
                             <img
                                 src={allImages[selectedImage]}
                                 alt={product.name}
+                                loading="eager"
+                                fetchPriority="high"
                                 className="w-full h-full object-cover"
                             />
                             {discountPercentage > 0 && (
@@ -105,6 +112,7 @@ export default function ProductShow({ product }) {
                                         <img
                                             src={image}
                                             alt={`${product.name} ${index + 1}`}
+                                            loading="lazy"
                                             className="w-full h-full object-cover"
                                         />
                                     </button>
@@ -160,13 +168,13 @@ export default function ProductShow({ product }) {
                                 <>
                                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                                     <span className="text-green-600 font-medium">
-                                        In Stock ({product.stock} available)
+                                        En Stock ({product.stock} disponibles)
                                     </span>
                                 </>
                             ) : (
                                 <>
                                     <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                                    <span className="text-red-500 font-medium">Out of Stock</span>
+                                    <span className="text-red-500 font-medium">Agotado</span>
                                 </>
                             )}
                         </div>
@@ -174,7 +182,7 @@ export default function ProductShow({ product }) {
                         {/* Description */}
                         <div className="prose prose-gray max-w-none">
                             <p className="text-gray-600 text-lg leading-relaxed">
-                                {product.description || 'No description available for this product.'}
+                                {product.description || 'No hay descripción disponible para este producto.'}
                             </p>
                         </div>
 
@@ -190,7 +198,7 @@ export default function ProductShow({ product }) {
                             <div className="space-y-4">
                                 {/* Quantity Selector */}
                                 <div className="flex items-center space-x-4">
-                                    <label className="font-medium text-gray-900">Quantity:</label>
+                                    <label className="font-medium text-gray-900">Cantidad:</label>
                                     <div className="flex items-center border border-gray-300 rounded-lg">
                                         <button
                                             onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -217,7 +225,7 @@ export default function ProductShow({ product }) {
                                         disabled={isAddingToCart}
                                         className="btn-primary flex-1 text-lg py-3 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        {isAddingToCart ? 'Adding...' : 'Add to Cart'}
+                                        {isAddingToCart ? 'Agregando...' : 'Añadir al Carrito'}
                                     </button>
                                     <button className="btn-secondary flex-shrink-0 px-6 py-3">
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,25 +243,25 @@ export default function ProductShow({ product }) {
                                     <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
-                                    <span>Free shipping on orders over $50</span>
+                                    <span>Envío gratis en compras superiores a $50</span>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
-                                    <span>30-day return policy</span>
+                                    <span>Política de devolución de 30 días</span>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
-                                    <span>Secure payment</span>
+                                    <span>Pago seguro</span>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
-                                    <span>Customer support</span>
+                                    <span>Atención al cliente</span>
                                 </div>
                             </div>
                         </div>

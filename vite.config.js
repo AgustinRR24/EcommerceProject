@@ -12,4 +12,16 @@ export default defineConfig({
         react(),
         tailwindcss(),
     ],
+    build: {
+        minify: 'esbuild',
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    'react-vendor': ['react', 'react-dom'],
+                    'inertia-vendor': ['@inertiajs/react'],
+                },
+            },
+        },
+        chunkSizeWarningLimit: 1000,
+    },
 });

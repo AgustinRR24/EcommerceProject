@@ -198,10 +198,10 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                 {/* Header */}
                 <div style={{ marginBottom: '2rem' }}>
                     <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.5rem' }}>
-                        Checkout
+                        Finalizar Compra
                     </h1>
                     <p style={{ color: '#6b7280' }}>
-                        Complete your order information
+                        Completa la información de tu pedido
                     </p>
                 </div>
 
@@ -217,13 +217,13 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                             {/* Información de Envío */}
                             <div style={{ marginBottom: '2rem' }}>
                                 <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem' }}>
-                                    Shipping Information
+                                    Información de Envío
                                 </h2>
 
                                 <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: '1fr 1fr' }}>
                                     <div>
                                         <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
-                                            Full Name
+                                            Nombre Completo
                                         </label>
                                         <input
                                             type="text"
@@ -242,7 +242,7 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                                     </div>
                                     <div>
                                         <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
-                                            Email
+                                            Correo Electrónico
                                         </label>
                                         <input
                                             type="email"
@@ -263,7 +263,7 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
 
                                 <div style={{ marginTop: '1rem' }}>
                                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
-                                        Phone
+                                        Teléfono
                                     </label>
                                     <input
                                         type="tel"
@@ -283,7 +283,7 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
 
                                 <div style={{ marginTop: '1rem' }}>
                                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
-                                        Address
+                                        Dirección
                                     </label>
                                     <input
                                         type="text"
@@ -304,7 +304,7 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                                 <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: '1fr 1fr 1fr', marginTop: '1rem' }}>
                                     <div>
                                         <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
-                                            City
+                                            Ciudad
                                         </label>
                                         <input
                                             type="text"
@@ -323,7 +323,7 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                                     </div>
                                     <div>
                                         <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
-                                            State
+                                            Provincia
                                         </label>
                                         <input
                                             type="text"
@@ -342,7 +342,7 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                                     </div>
                                     <div>
                                         <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
-                                            ZIP Code
+                                            Código Postal
                                         </label>
                                         <input
                                             type="text"
@@ -365,11 +365,11 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                             {/* Nota sobre el Pago */}
                             <div style={{ marginBottom: '2rem', padding: '1rem', backgroundColor: '#f0f9ff', borderRadius: '0.5rem', border: '1px solid #bfdbfe' }}>
                                 <h2 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1e40af', marginBottom: '0.5rem' }}>
-                                    💳 Payment with MercadoPago
+                                    💳 Pago con MercadoPago
                                 </h2>
                                 <p style={{ color: '#1e40af', fontSize: '0.875rem' }}>
-                                    You will be redirected to MercadoPago to complete your payment securely.
-                                    You can pay with credit cards, debit cards, bank transfers, and more.
+                                    Serás redirigido a MercadoPago para completar tu pago de forma segura.
+                                    Puedes pagar con tarjetas de crédito, débito, transferencias bancarias y más.
                                 </p>
                             </div>
 
@@ -386,7 +386,7 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                                         fontWeight: '500'
                                     }}
                                 >
-                                    Back to Cart
+                                    Volver al Carrito
                                 </Link>
                                 <button
                                     type="submit"
@@ -402,17 +402,17 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                                         opacity: isProcessing ? 0.5 : 1
                                     }}
                                 >
-                                    {isProcessing ? 'Processing...' : 'Continue to Payment'}
+                                    {isProcessing ? 'Procesando...' : 'Continuar al Pago'}
                                 </button>
                             </div>
                         </form>
                         ) : (
                             <div style={{ backgroundColor: 'white', borderRadius: '0.5rem', border: '1px solid #e5e7eb', padding: '2rem' }}>
                                 <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem' }}>
-                                    Complete Your Payment
+                                    Completa tu Pago
                                 </h2>
                                 <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
-                                    Click the button below to complete your payment with MercadoPago
+                                    Haz clic en el botón de abajo para completar tu pago con MercadoPago
                                 </p>
 
                                 {/* Container para el botón de MercadoPago */}
@@ -431,7 +431,7 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                                         fontSize: '0.875rem'
                                     }}
                                 >
-                                    ← Back to Shipping Info
+                                    ← Volver a Información de Envío
                                 </button>
                             </div>
                         )}
@@ -441,7 +441,7 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                     <div>
                         <div style={{ backgroundColor: 'white', borderRadius: '0.5rem', border: '1px solid #e5e7eb', padding: '1.5rem' }}>
                             <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem' }}>
-                                Order Summary
+                                Resumen del Pedido
                             </h2>
 
                             {/* Items */}
@@ -459,7 +459,7 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                                                     {item.product.name}
                                                 </p>
                                                 <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                                                    Qty: {item.quantity}
+                                                    Cant: {item.quantity}
                                                 </p>
                                             </div>
                                         </div>
@@ -473,7 +473,7 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                             {/* Promo Code Section */}
                             <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: '1rem', marginBottom: '1rem' }}>
                                 <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '0.75rem' }}>
-                                    Promo Code
+                                    Código Promocional
                                 </h3>
 
                                 {!appliedPromo ? (
@@ -483,7 +483,7 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                                             value={promoCode}
                                             onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
                                             onKeyPress={(e) => e.key === 'Enter' && validatePromoCode()}
-                                            placeholder="Enter promo code"
+                                            placeholder="Ingresa el código"
                                             style={{
                                                 flex: 1,
                                                 padding: '0.5rem',
@@ -507,7 +507,7 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                                                 opacity: (isValidatingPromo || !promoCode.trim()) ? 0.5 : 1
                                             }}
                                         >
-                                            {isValidatingPromo ? 'Validating...' : 'Apply'}
+                                            {isValidatingPromo ? 'Validando...' : 'Aplicar'}
                                         </button>
                                     </div>
                                 ) : (
@@ -536,7 +536,7 @@ export default function Checkout({ cartItems, subtotal, shipping, tax, total, us
                                                 textDecoration: 'underline'
                                             }}
                                         >
-                                            Remove
+                                            Eliminar
                                         </button>
                                     </div>
                                 )}

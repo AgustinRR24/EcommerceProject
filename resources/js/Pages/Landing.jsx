@@ -118,7 +118,7 @@ export default function Landing({ products, categories, brands, filters = {} }) 
                             `}</style>
                             <input
                                 type="text"
-                                placeholder="Search products..."
+                                placeholder="Buscar productos..."
                                 value={localFilters.search}
                                 onChange={(e) => handleFilterChange('search', e.target.value)}
                                 className="hero-search"
@@ -162,29 +162,29 @@ export default function Landing({ products, categories, brands, filters = {} }) 
                         <div className="lg:w-80 flex-shrink-0">
                             <div className="card p-6 sticky top-8">
                                 <div className="flex items-center justify-between mb-6">
-                                    <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
+                                    <h2 className="text-lg font-semibold text-gray-900">Filtros</h2>
                                     <button
                                         onClick={clearFilters}
                                         className="text-sm text-brand-600 hover:text-brand-700 font-medium"
                                     >
-                                        Clear all
+                                        Limpiar todo
                                     </button>
                                 </div>
 
                                 {/* Price Range */}
                                 <div className="mb-6">
-                                    <h3 className="font-medium text-gray-900 mb-3">Price Range</h3>
+                                    <h3 className="font-medium text-gray-900 mb-3">Rango de Precio</h3>
                                     <div className="grid grid-cols-2 gap-3">
                                         <input
                                             type="number"
-                                            placeholder="Min"
+                                            placeholder="Mín"
                                             value={localFilters.min_price}
                                             onChange={(e) => handleFilterChange('min_price', e.target.value)}
                                             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                                         />
                                         <input
                                             type="number"
-                                            placeholder="Max"
+                                            placeholder="Máx"
                                             value={localFilters.max_price}
                                             onChange={(e) => handleFilterChange('max_price', e.target.value)}
                                             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
@@ -194,7 +194,7 @@ export default function Landing({ products, categories, brands, filters = {} }) 
 
                                 {/* Categories */}
                                 <div className="mb-6">
-                                    <h3 className="font-medium text-gray-900 mb-3">Categories</h3>
+                                    <h3 className="font-medium text-gray-900 mb-3">Categorías</h3>
                                     <div className="space-y-2 max-h-48 overflow-y-auto">
                                         {categories.map((category) => (
                                             <label key={category.id} className="flex items-center">
@@ -212,7 +212,7 @@ export default function Landing({ products, categories, brands, filters = {} }) 
 
                                 {/* Brands */}
                                 <div>
-                                    <h3 className="font-medium text-gray-900 mb-3">Brands</h3>
+                                    <h3 className="font-medium text-gray-900 mb-3">Marcas</h3>
                                     <div className="space-y-2 max-h-48 overflow-y-auto">
                                         {brands.map((brand) => (
                                             <label key={brand.id} className="flex items-center">
@@ -235,20 +235,20 @@ export default function Landing({ products, categories, brands, filters = {} }) 
                             {/* Results Header */}
                             <div className="flex items-center justify-between mb-8">
                                 <div>
-                                    <h2 className="text-2xl font-bold text-gray-900">Products</h2>
+                                    <h2 className="text-2xl font-bold text-gray-900">Productos</h2>
                                     <p className="text-gray-600 mt-1">
-                                        {products.total} {products.total === 1 ? 'product' : 'products'} found
+                                        {products.total} {products.total === 1 ? 'producto' : 'productos'} encontrados
                                     </p>
                                 </div>
 
                                 {/* Sort Dropdown */}
                                 <div className="relative">
                                     <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent">
-                                        <option>Sort by: Featured</option>
-                                        <option>Price: Low to High</option>
-                                        <option>Price: High to Low</option>
-                                        <option>Newest First</option>
-                                        <option>Best Rating</option>
+                                        <option>Ordenar por: Destacados</option>
+                                        <option>Precio: Menor a Mayor</option>
+                                        <option>Precio: Mayor a Menor</option>
+                                        <option>Más Recientes</option>
+                                        <option>Mejor Valorados</option>
                                     </select>
                                 </div>
                             </div>
@@ -292,10 +292,10 @@ export default function Landing({ products, categories, brands, filters = {} }) 
                                     <svg className="mx-auto w-24 h-24 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                                     </svg>
-                                    <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
-                                    <p className="text-gray-600 mb-6">Try adjusting your filters or search terms</p>
+                                    <h3 className="text-lg font-medium text-gray-900 mb-2">No se encontraron productos</h3>
+                                    <p className="text-gray-600 mb-6">Intenta ajustar tus filtros o términos de búsqueda</p>
                                     <button onClick={clearFilters} className="btn-primary">
-                                        Clear all filters
+                                        Limpiar todos los filtros
                                     </button>
                                 </div>
                             )}

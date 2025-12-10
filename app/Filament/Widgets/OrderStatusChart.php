@@ -3,12 +3,14 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Order;
+use Filament\Support\RawJs;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class OrderStatusChart extends ApexChartWidget
 {
     protected static ?string $chartId = 'orderStatusChart';
     protected static ?int $sort = 8;
+    protected static ?string $pollingInterval = '10s';
 
     public function getColumnSpan(): int | string | array
     {
@@ -28,7 +30,7 @@ class OrderStatusChart extends ApexChartWidget
             ],
             'series' => $statusData['values'],
             'labels' => $statusData['labels'],
-            'colors' => ['#10b981', '#f59e0b', '#ef4444', '#6b7280'],
+            'colors' => $statusData['colors'],
             'legend' => [
                 'position' => 'bottom',
             ],
@@ -39,16 +41,28 @@ class OrderStatusChart extends ApexChartWidget
                     ],
                 ],
             ],
-            'dataLabels' => [
-                'enabled' => true,
-                'formatter' => 'function(val) { return Math.round(val) + "%" }',
-            ],
-            'tooltip' => [
-                'y' => [
-                    'formatter' => 'function(val) { return val + " órdenes" }',
-                ],
-            ],
         ];
+    }
+
+    protected function extraJsOptions(): ?RawJs
+    {
+        return RawJs::make(<<<'JS'
+        {
+            dataLabels: {
+                enabled: true,
+                formatter: function (val, opt) {
+                    return Math.round(val) + '%'
+                }
+            },
+            tooltip: {
+                y: {
+                    formatter: function (val) {
+                        return val + ' órdenes'
+                    }
+                }
+            }
+        }
+        JS);
     }
 
     private function getOrderStatusData(): array
@@ -60,30 +74,27 @@ class OrderStatusChart extends ApexChartWidget
 
         $labels = [];
         $values = [];
+        $colors = [];
 
         $statusMapping = [
-            'completed' => 'Completadas',
-            'pending' => 'Pendientes',
-            'cancelled' => 'Canceladas',
-            'processing' => 'En Proceso',
+            'completed' => ['label' => 'Completadas', 'color' => '#10b981'],
+            'pending' => ['label' => 'Pendientes', 'color' => '#f59e0b'],
+            'cancelled' => ['label' => 'Canceladas', 'color' => '#ef4444'],
+            'processing' => ['label' => 'En Proceso', 'color' => '#6b7280'],
         ];
 
-        foreach ($statusMapping as $key => $label) {
+        foreach ($statusMapping as $key => $config) {
             if (isset($statusCounts[$key])) {
-                $labels[] = $label;
-                $values[] = $statusCounts[$key];
+                $labels[] = $config['label'];
+                $values[] = (int) $statusCounts[$key];
+                $colors[] = $config['color'];
             }
-        }
-
-        // Si no hay datos, mostrar ejemplo
-        if (empty($values)) {
-            $labels = ['Completadas', 'Pendientes', 'En Proceso', 'Canceladas'];
-            $values = [45, 25, 20, 10];
         }
 
         return [
             'labels' => $labels,
             'values' => $values,
+            'colors' => $colors,
         ];
     }
 }

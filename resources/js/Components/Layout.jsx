@@ -3,7 +3,11 @@ import { Link } from '@inertiajs/react';
 
 export default function Layout({ children }) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [cartCount, setCartCount] = useState(0);
+    // Inicializar el contador desde localStorage si existe
+    const [cartCount, setCartCount] = useState(() => {
+        const cached = localStorage.getItem('cartCount');
+        return cached ? parseInt(cached, 10) : 0;
+    });
 
     useEffect(() => {
         // Función para obtener el contador del carrito
@@ -12,13 +16,18 @@ export default function Layout({ children }) {
                 const response = await fetch('/cart/count');
                 if (response.ok) {
                     const data = await response.json();
-                    setCartCount(data.count || 0);
+                    const count = data.count || 0;
+                    setCartCount(count);
+                    // Guardar en localStorage
+                    localStorage.setItem('cartCount', count.toString());
                 } else {
                     setCartCount(0);
+                    localStorage.setItem('cartCount', '0');
                 }
             } catch (error) {
                 // Silently fail for unauthenticated users
                 setCartCount(0);
+                localStorage.setItem('cartCount', '0');
             }
         };
 
@@ -31,25 +40,40 @@ export default function Layout({ children }) {
             }
 
             try {
-                await fetch('/cart/update-prices', {
+                const response = await fetch('/cart/update-prices', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': csrfToken
                     }
                 });
+
+                // Si no está autenticado, no hacer nada
+                if (response.status === 401) {
+                    return;
+                }
             } catch (error) {
                 // Silently fail
             }
         };
 
-        // Actualizar precios primero, luego obtener contador
-        updateCartPrices().then(() => fetchCartCount());
+        // Solo actualizar precios y contador si hay un token CSRF (usuario autenticado)
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken) {
+            // Actualizar precios primero, luego obtener contador al cargar la página
+            updateCartPrices().then(() => fetchCartCount());
+        }
 
-        // Actualizar el contador cada vez que la página cambia (por si se agrega algo al carrito)
-        const interval = setInterval(fetchCartCount, 2000);
+        // Escuchar evento personalizado para actualizar el carrito
+        const handleCartUpdate = () => {
+            fetchCartCount();
+        };
 
-        return () => clearInterval(interval);
+        window.addEventListener('cartUpdated', handleCartUpdate);
+
+        return () => {
+            window.removeEventListener('cartUpdated', handleCartUpdate);
+        };
     }, []);
 
     return (

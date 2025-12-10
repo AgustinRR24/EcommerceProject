@@ -17,6 +17,7 @@
         "laravel/tinker": "^2.10.1",
         "leandrocfe/filament-apex-charts": "3.2",
         "mercadopago/dx-php": "*",
+        "resend/resend-laravel": "^1.0",
         "shuvroroy/filament-spatie-laravel-health": "^2.3",
         "swisnl/filament-backgrounds": "^1.1"
     },

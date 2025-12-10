@@ -6,12 +6,17 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
-        <!-- Fonts -->
+        <!-- Preconnect para recursos externos -->
         <link rel="preconnect" href="https://fonts.bunny.net">
+        <link rel="preconnect" href="https://sdk.mercadopago.com">
+        <link rel="dns-prefetch" href="https://fonts.bunny.net">
+        <link rel="dns-prefetch" href="https://sdk.mercadopago.com">
+
+        <!-- Fonts -->
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
-        <!-- MercadoPago SDK -->
-        <script src="https://sdk.mercadopago.com/js/v2"></script>
+        <!-- MercadoPago SDK con defer -->
+        <script src="https://sdk.mercadopago.com/js/v2" defer></script>
 
         <!-- Scripts -->
         @viteReactRefresh

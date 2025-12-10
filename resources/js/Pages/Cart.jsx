@@ -28,6 +28,7 @@ export default function Cart({ cartItems, total, itemCount }) {
             {
                 onSuccess: () => {
                     // Los datos se actualizan automáticamente con Inertia
+                    window.dispatchEvent(new Event('cartUpdated'));
                 },
                 onError: (error) => {
                     console.error('Error:', error);
@@ -53,6 +54,7 @@ export default function Cart({ cartItems, total, itemCount }) {
                         message: 'Producto eliminado del carrito',
                         type: 'success'
                     });
+                    window.dispatchEvent(new Event('cartUpdated'));
                 },
                 onError: (error) => {
                     console.error('Error:', error);
@@ -81,6 +83,7 @@ export default function Cart({ cartItems, total, itemCount }) {
                         type: 'success'
                     });
                     setShowClearDialog(false);
+                    window.dispatchEvent(new Event('cartUpdated'));
                 },
                 onError: (error) => {
                     console.error('Error:', error);
@@ -100,10 +103,10 @@ export default function Cart({ cartItems, total, itemCount }) {
                 {/* Header */}
                 <div style={{ marginBottom: '2rem' }}>
                     <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1f2937', marginBottom: '0.5rem' }}>
-                        Shopping Cart
+                        Carrito de Compras
                     </h1>
                     <p style={{ color: '#6b7280' }}>
-                        {itemCount} {itemCount === 1 ? 'item' : 'items'} in your cart
+                        {itemCount} {itemCount === 1 ? 'artículo' : 'artículos'} en tu carrito
                     </p>
                 </div>
 
@@ -155,7 +158,7 @@ export default function Cart({ cartItems, total, itemCount }) {
                                             </Link>
 
                                             <p style={{ color: '#6b7280', fontSize: '0.875rem', marginBottom: '1rem' }}>
-                                                {formatPrice(item.price)} each
+                                                {formatPrice(item.price)} c/u
                                             </p>
 
                                             {/* Quantity Controls */}
@@ -241,7 +244,7 @@ export default function Cart({ cartItems, total, itemCount }) {
                                                         <line x1="10" y1="11" x2="10" y2="17"></line>
                                                         <line x1="14" y1="11" x2="14" y2="17"></line>
                                                     </svg>
-                                                    {isRemoving[item.id] ? 'Removing...' : 'Remove'}
+                                                    {isRemoving[item.id] ? 'Eliminando...' : 'Eliminar'}
                                                 </button>
                                             </div>
 
@@ -296,7 +299,7 @@ export default function Cart({ cartItems, total, itemCount }) {
                                         <line x1="10" y1="11" x2="10" y2="17"></line>
                                         <line x1="14" y1="11" x2="14" y2="17"></line>
                                     </svg>
-                                    Clear Cart
+                                    Vaciar Carrito
                                 </button>
                             </div>
                         </div>
@@ -305,12 +308,12 @@ export default function Cart({ cartItems, total, itemCount }) {
                         <div>
                             <div style={{ backgroundColor: 'white', borderRadius: '0.5rem', border: '1px solid #e5e7eb', padding: '1.5rem' }}>
                                 <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem' }}>
-                                    Order Summary
+                                    Resumen del Pedido
                                 </h2>
 
                                 <div style={{ marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid #f3f4f6' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                        <span style={{ color: '#6b7280' }}>Subtotal ({itemCount} items)</span>
+                                        <span style={{ color: '#6b7280' }}>Subtotal ({itemCount} {itemCount === 1 ? 'artículo' : 'artículos'})</span>
                                         <span style={{ color: '#1f2937' }}>{formatPrice(total)}</span>
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
@@ -345,7 +348,7 @@ export default function Cart({ cartItems, total, itemCount }) {
                                         fontWeight: '500'
                                     }}
                                 >
-                                    Proceed to Checkout
+                                    Proceder al Pago
                                 </Link>
 
                                 <Link
@@ -359,7 +362,7 @@ export default function Cart({ cartItems, total, itemCount }) {
                                         fontSize: '0.875rem'
                                     }}
                                 >
-                                    Continue Shopping
+                                    Continuar Comprando
                                 </Link>
                             </div>
                         </div>
@@ -369,10 +372,10 @@ export default function Cart({ cartItems, total, itemCount }) {
                     <div style={{ textAlign: 'center', padding: '3rem 0' }}>
                         <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🛒</div>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#1f2937', marginBottom: '0.5rem' }}>
-                            Your cart is empty
+                            Tu carrito está vacío
                         </h2>
                         <p style={{ color: '#6b7280', marginBottom: '2rem' }}>
-                            Looks like you haven't added anything to your cart yet.
+                            Parece que aún no has agregado nada a tu carrito.
                         </p>
                         <Link
                             href="/"
@@ -386,7 +389,7 @@ export default function Cart({ cartItems, total, itemCount }) {
                                 fontWeight: '500'
                             }}
                         >
-                            Start Shopping
+                            Comenzar a Comprar
                         </Link>
                     </div>
                 )}

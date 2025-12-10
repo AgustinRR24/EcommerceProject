@@ -97,14 +97,40 @@ class CheckoutController extends Controller
             return response()->json(['error' => 'Tu carrito está vacío'], 400);
         }
 
-        // Formatear items para MercadoPago (según documentación)
-        $mpItems = $mercadoPagoService->formatItems($cartItems->map(function ($item) {
+        // Calcular totales para la orden
+        $subtotal = $cartItems->sum(function ($item) {
+            return $item->quantity * $item->price;
+        });
+        $shipping = 0;
+        $tax = 0;
+
+        // Aplicar código promocional si existe
+        $discount = 0;
+        $discountPercentage = 0;
+        $promoCodeId = $request->promo_code_id;
+        if ($promoCodeId) {
+            $promoCode = PromoCode::where('id', $promoCodeId)
+                                  ->where('is_active', true)
+                                  ->first();
+            if ($promoCode) {
+                $discountPercentage = $promoCode->discount_percentage;
+                $discount = ($subtotal * $discountPercentage) / 100;
+            }
+        }
+
+        $total = $subtotal + $shipping + $tax - $discount;
+
+        // Formatear items para MercadoPago aplicando el descuento proporcionalmente
+        $mpItems = $mercadoPagoService->formatItems($cartItems->map(function ($item) use ($discountPercentage) {
+            // Aplicar el descuento al precio unitario
+            $discountedPrice = $item->price * (1 - ($discountPercentage / 100));
+
             return [
                 'product' => [
                     'name' => $item->product->name,
                 ],
                 'quantity' => $item->quantity,
-                'price' => $item->price,
+                'price' => $discountedPrice,
             ];
         })->toArray());
 
@@ -129,29 +155,8 @@ class CheckoutController extends Controller
             ], 500);
         }
 
-        // Calcular totales para la orden
-        $subtotal = $cartItems->sum(function ($item) {
-            return $item->quantity * $item->price;
-        });
-        $shipping = 0;
-        $tax = 0;
-
-        // Aplicar código promocional si existe
-        $discount = 0;
-        $promoCodeId = $request->promo_code_id;
-        if ($promoCodeId) {
-            $promoCode = PromoCode::where('id', $promoCodeId)
-                                  ->where('is_active', true)
-                                  ->first();
-            if ($promoCode) {
-                $discount = ($subtotal * $promoCode->discount_percentage) / 100;
-            }
-        }
-
-        $total = $subtotal + $shipping + $tax - $discount;
-
         // Crear la orden en la base de datos
-        $order = DB::transaction(function () use ($cartItems, $user, $request, $externalReference, $subtotal, $shipping, $tax, $total, $discount, $promoCodeId) {
+        $order = DB::transaction(function () use ($cartItems, $user, $request, $externalReference, $subtotal, $shipping, $tax, $total, $discount, $promoCodeId, $discountPercentage) {
             // Crear la orden
             $order = Order::create([
                 'user_id' => $user->id,
@@ -173,14 +178,17 @@ class CheckoutController extends Controller
                 'notes' => "Nombre: {$request->shipping_name}, Email: {$request->shipping_email}"
             ]);
 
-            // Crear los detalles de la orden
+            // Crear los detalles de la orden con el descuento aplicado
             foreach ($cartItems as $cartItem) {
+                // Aplicar el descuento al precio unitario
+                $discountedPrice = $cartItem->price * (1 - ($discountPercentage / 100));
+
                 OrderDetail::create([
                     'order_id' => $order->id,
                     'product_id' => $cartItem->product_id,
                     'quantity' => $cartItem->quantity,
-                    'price' => $cartItem->price,
-                    'total' => $cartItem->quantity * $cartItem->price
+                    'price' => $discountedPrice,
+                    'total' => $cartItem->quantity * $discountedPrice
                 ]);
             }
 
@@ -276,15 +284,24 @@ class CheckoutController extends Controller
                 ]);
 
                 if ($order && $payment->status === 'approved') {
+                    // Verificar si el pago ya fue procesado anteriormente
+                    if ($order->payment_status === 'approved') {
+                        Log::info('Payment already processed, skipping...', [
+                            'order_id' => $order->id,
+                            'payment_id' => $paymentId
+                        ]);
+                        return; // Salir sin procesar de nuevo
+                    }
+
                     Log::info('Starting order processing...');
 
-                    // Actualizar estado de la orden
+                    // Actualizar estado del pago (la orden sigue en pending hasta que se reciba)
                     $order->update([
-                        'status' => 'completed',
+                        'status' => 'pending',
                         'payment_status' => 'approved'
                     ]);
 
-                    Log::info('Order status updated', ['order_id' => $order->id]);
+                    Log::info('Order payment status updated', ['order_id' => $order->id]);
 
                     // Procesar pago aprobado (limpiar carrito y reducir stock)
                     $this->processApprovedPayment($order);
