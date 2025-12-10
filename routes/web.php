@@ -51,6 +51,24 @@ Route::get('/order/{order}/print', function(\App\Models\Order $order) {
     return view('order-invoice', ['record' => $order]);
 })->name('order.print');
 
+// Ruta para imprimir etiquetas de envío masivamente
+Route::get('/orders/print-bulk', function() {
+    $orderIds = session('bulk_print_order_ids', []);
+
+    if (empty($orderIds)) {
+        abort(404, 'No hay órdenes para imprimir');
+    }
+
+    $orders = \App\Models\Order::with(['user', 'orderDetails.product'])
+        ->whereIn('id', $orderIds)
+        ->get();
+
+    // Limpiar la sesión después de obtener los datos
+    session()->forget('bulk_print_order_ids');
+
+    return view('order-labels-bulk', ['records' => $orders]);
+})->name('orders.print.bulk.view');
+
 // Nuevas rutas para páginas adicionales
 Route::get('/hotsale', [\App\Http\Controllers\LandingController::class, 'hotsale'])->name('hotsale');
 Route::get('/about', [\App\Http\Controllers\LandingController::class, 'about'])->name('about');

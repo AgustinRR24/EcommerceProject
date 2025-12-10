@@ -12,6 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class ProductResource extends Resource
 {
@@ -91,6 +92,10 @@ class ProductResource extends Resource
                                     ->label('Nombre')
                                     ->required(),
                             ])
+                            ->createOptionUsing(function (array $data): int {
+                                $data['slug'] = Str::slug($data['name']);
+                                return Brand::create($data)->getKey();
+                            })
                             ->columnSpan(1),
                         Forms\Components\TextInput::make('slug')
                             ->label('Slug (URL amigable)')
@@ -292,6 +297,111 @@ class ProductResource extends Resource
                         ->color('danger')
                         ->action(fn ($records) => $records->each->update(['is_active' => false]))
                         ->deselectRecordsAfterCompletion(),
+
+                    // Actualización masiva de precios
+                    Tables\Actions\BulkAction::make('updatePrices')
+                        ->label('Actualizar Precios')
+                        ->icon('heroicon-o-currency-dollar')
+                        ->color('warning')
+                        ->form([
+                            Forms\Components\Select::make('type')
+                                ->label('Tipo de actualización')
+                                ->options([
+                                    'increase' => 'Aumentar',
+                                    'decrease' => 'Disminuir',
+                                ])
+                                ->required()
+                                ->live()
+                                ->helperText('Selecciona si quieres aumentar o disminuir los precios'),
+                            Forms\Components\TextInput::make('percentage')
+                                ->label('Porcentaje')
+                                ->numeric()
+                                ->suffix('%')
+                                ->required()
+                                ->minValue(0)
+                                ->maxValue(100)
+                                ->helperText('Ejemplo: 10 para 10%'),
+                        ])
+                        ->action(function ($records, array $data) {
+                            $multiplier = $data['type'] === 'increase'
+                                ? (1 + $data['percentage'] / 100)
+                                : (1 - $data['percentage'] / 100);
+
+                            foreach ($records as $record) {
+                                $newPrice = round($record->price * $multiplier, 2);
+
+                                // Actualizar precio y precio con descuento si existe
+                                $updates = ['price' => $newPrice];
+
+                                if ($record->discount_price) {
+                                    $updates['discount_price'] = round($record->discount_price * $multiplier, 2);
+                                }
+
+                                $record->update($updates);
+                            }
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Precios actualizados')
+                                ->success()
+                                ->body($records->count() . ' productos actualizados correctamente.')
+                                ->send();
+                        })
+                        ->deselectRecordsAfterCompletion()
+                        ->requiresConfirmation()
+                        ->modalHeading('Actualizar precios masivamente')
+                        ->modalDescription('Esta acción actualizará los precios de todos los productos seleccionados.')
+                        ->modalSubmitActionLabel('Actualizar precios'),
+
+                    // Actualización masiva de stock
+                    Tables\Actions\BulkAction::make('updateStock')
+                        ->label('Ajustar Stock')
+                        ->icon('heroicon-o-cube')
+                        ->color('info')
+                        ->form([
+                            Forms\Components\Select::make('operation')
+                                ->label('Operación')
+                                ->options([
+                                    'add' => 'Sumar',
+                                    'subtract' => 'Restar',
+                                    'set' => 'Establecer',
+                                ])
+                                ->required()
+                                ->live()
+                                ->helperText('Selecciona la operación a realizar'),
+                            Forms\Components\TextInput::make('quantity')
+                                ->label('Cantidad')
+                                ->numeric()
+                                ->required()
+                                ->minValue(0)
+                                ->suffix('unidades')
+                                ->helperText('Cantidad a sumar, restar o establecer'),
+                        ])
+                        ->action(function ($records, array $data) {
+                            foreach ($records as $record) {
+                                $newStock = match($data['operation']) {
+                                    'add' => $record->stock + $data['quantity'],
+                                    'subtract' => max(0, $record->stock - $data['quantity']),
+                                    'set' => $data['quantity'],
+                                };
+
+                                $record->update(['stock' => $newStock]);
+                            }
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Stock actualizado')
+                                ->success()
+                                ->body($records->count() . ' productos actualizados correctamente.')
+                                ->send();
+                        })
+                        ->deselectRecordsAfterCompletion()
+                        ->requiresConfirmation()
+                        ->modalHeading('Ajustar stock masivamente')
+                        ->modalDescription('Esta acción actualizará el stock de todos los productos seleccionados.')
+                        ->modalSubmitActionLabel('Actualizar stock'),
+
+                    // Exportar a Excel
+                    ExportBulkAction::make()
+                        ->label('Exportar a Excel'),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');

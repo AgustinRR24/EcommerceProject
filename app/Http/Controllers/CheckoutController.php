@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\OrderConfirmation;
 use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\OrderDetail;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class CheckoutController extends Controller
@@ -305,6 +307,25 @@ class CheckoutController extends Controller
 
                     // Procesar pago aprobado (limpiar carrito y reducir stock)
                     $this->processApprovedPayment($order);
+
+                    // Enviar email de confirmación
+                    try {
+                        // Recargar la orden con sus relaciones para el email
+                        $order->load(['orderDetails.product', 'promoCode', 'user']);
+
+                        Mail::to($order->user->email)->send(new OrderConfirmation($order));
+
+                        Log::info('Order confirmation email sent', [
+                            'order_id' => $order->id,
+                            'email' => $order->user->email
+                        ]);
+                    } catch (\Exception $e) {
+                        Log::error('Failed to send order confirmation email', [
+                            'order_id' => $order->id,
+                            'error' => $e->getMessage()
+                        ]);
+                        // No lanzar excepción para que el proceso continúe
+                    }
 
                     Log::info('Payment processed successfully from success page', [
                         'order_id' => $order->id,

@@ -35,9 +35,26 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        // No compartir props de Inertia en páginas de Filament (admin/customer)
+        // para prevenir conflictos entre Inertia y Livewire
+        if (str_starts_with($request->path(), 'admin') ||
+            str_starts_with($request->path(), 'customer')) {
+            return parent::share($request);
+        }
+
         return [
             ...parent::share($request),
-            //
+            'auth' => [
+                'user' => $request->user() ? [
+                    'id' => $request->user()->id,
+                    'name' => $request->user()->name,
+                    'email' => $request->user()->email,
+                ] : null,
+            ],
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
         ];
     }
 }

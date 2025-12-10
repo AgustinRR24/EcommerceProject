@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 
 export default function Layout({ children }) {
+    const { auth } = usePage().props;
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     // Inicializar el contador desde localStorage si existe
     const [cartCount, setCartCount] = useState(() => {
@@ -10,22 +11,40 @@ export default function Layout({ children }) {
     });
 
     useEffect(() => {
+        // No hacer nada si estamos en una página de Filament (admin/customer panel)
+        const isFilamentPage = window.location.pathname.startsWith('/admin') ||
+                               window.location.pathname.startsWith('/customer');
+
+        if (isFilamentPage) {
+            return;
+        }
+
         // Función para obtener el contador del carrito
         const fetchCartCount = async () => {
+            // Solo obtener contador si el usuario está autenticado
+            if (!auth?.user) {
+                setCartCount(0);
+                localStorage.setItem('cartCount', '0');
+                return;
+            }
+
             try {
                 const response = await fetch('/cart/count');
                 if (response.ok) {
                     const data = await response.json();
                     const count = data.count || 0;
                     setCartCount(count);
-                    // Guardar en localStorage
                     localStorage.setItem('cartCount', count.toString());
+                } else if (response.status === 401) {
+                    // Usuario no autenticado
+                    setCartCount(0);
+                    localStorage.setItem('cartCount', '0');
                 } else {
                     setCartCount(0);
                     localStorage.setItem('cartCount', '0');
                 }
             } catch (error) {
-                // Silently fail for unauthenticated users
+                // Silently fail
                 setCartCount(0);
                 localStorage.setItem('cartCount', '0');
             }
@@ -33,7 +52,11 @@ export default function Layout({ children }) {
 
         // Función para actualizar precios del carrito
         const updateCartPrices = async () => {
-            // Skip if no CSRF token (user not authenticated)
+            // Solo actualizar si el usuario está autenticado
+            if (!auth?.user) {
+                return;
+            }
+
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
             if (!csrfToken) {
                 return;
@@ -48,8 +71,8 @@ export default function Layout({ children }) {
                     }
                 });
 
-                // Si no está autenticado, no hacer nada
-                if (response.status === 401) {
+                // Si no está autenticado o hay error CSRF, no hacer nada
+                if (response.status === 401 || response.status === 419) {
                     return;
                 }
             } catch (error) {
@@ -57,16 +80,21 @@ export default function Layout({ children }) {
             }
         };
 
-        // Solo actualizar precios y contador si hay un token CSRF (usuario autenticado)
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        if (csrfToken) {
-            // Actualizar precios primero, luego obtener contador al cargar la página
+        // Solo ejecutar si el usuario está autenticado
+        if (auth?.user) {
+            // Actualizar precios primero, luego obtener contador
             updateCartPrices().then(() => fetchCartCount());
+        } else {
+            // Si no está autenticado, simplemente resetear el contador
+            setCartCount(0);
+            localStorage.setItem('cartCount', '0');
         }
 
         // Escuchar evento personalizado para actualizar el carrito
         const handleCartUpdate = () => {
-            fetchCartCount();
+            if (auth?.user) {
+                fetchCartCount();
+            }
         };
 
         window.addEventListener('cartUpdated', handleCartUpdate);
@@ -74,7 +102,7 @@ export default function Layout({ children }) {
         return () => {
             window.removeEventListener('cartUpdated', handleCartUpdate);
         };
-    }, []);
+    }, [auth?.user]);
 
     return (
         <div className="min-h-screen bg-gray-50">

@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class OrderResource extends Resource
 {
@@ -48,9 +49,10 @@ class OrderResource extends Resource
                             ->label('Estado de la Orden')
                             ->options([
                                 'pending' => 'Pendiente',
-                                'processing' => 'Procesando',
-                                'completed' => 'Completada',
-                                'cancelled' => 'Cancelada',
+                                'preparing' => 'En Preparación',
+                                'shipped' => 'En Camino',
+                                'delivered' => 'Entregado',
+                                'cancelled' => 'Cancelado',
                             ])
                             ->required()
                             ->default('pending')
@@ -198,16 +200,18 @@ class OrderResource extends Resource
                     ->label('Estado')
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'pending' => 'Pendiente',
-                        'completed' => 'Completada',
-                        'cancelled' => 'Cancelada',
-                        'processing' => 'Procesando',
+                        'preparing' => 'En Preparación',
+                        'shipped' => 'En Camino',
+                        'delivered' => 'Entregado',
+                        'cancelled' => 'Cancelado',
                         default => ucfirst($state),
                     })
                     ->colors([
                         'warning' => 'pending',
-                        'success' => 'completed',
+                        'info' => 'preparing',
+                        'primary' => 'shipped',
+                        'success' => 'delivered',
                         'danger' => 'cancelled',
-                        'info' => 'processing',
                     ])
                     ->sortable(),
                 Tables\Columns\BadgeColumn::make('payment_status')
@@ -326,20 +330,59 @@ class OrderResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\BulkAction::make('marcar_completadas')
-                        ->label('Marcar como completadas')
+                    Tables\Actions\BulkAction::make('marcar_preparacion')
+                        ->label('Marcar como "En Preparación"')
+                        ->icon('heroicon-o-inbox-stack')
+                        ->color('info')
+                        ->requiresConfirmation()
+                        ->action(fn ($records) => $records->each->update(['status' => 'preparing']))
+                        ->deselectRecordsAfterCompletion(),
+                    Tables\Actions\BulkAction::make('marcar_enviado')
+                        ->label('Marcar como "En Camino"')
+                        ->icon('heroicon-o-truck')
+                        ->color('primary')
+                        ->requiresConfirmation()
+                        ->action(fn ($records) => $records->each->update(['status' => 'shipped']))
+                        ->deselectRecordsAfterCompletion(),
+                    Tables\Actions\BulkAction::make('marcar_entregado')
+                        ->label('Marcar como "Entregado"')
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->requiresConfirmation()
-                        ->action(fn ($records) => $records->each->update(['status' => 'completed']))
+                        ->action(fn ($records) => $records->each->update(['status' => 'delivered']))
                         ->deselectRecordsAfterCompletion(),
-                    Tables\Actions\BulkAction::make('marcar_procesando')
-                        ->label('Marcar como procesando')
-                        ->icon('heroicon-o-arrow-path')
+
+                    // Exportar a Excel
+                    ExportBulkAction::make()
+                        ->label('Exportar a Excel'),
+
+                    // Imprimir etiquetas de envío masivamente
+                    Tables\Actions\BulkAction::make('print_shipping_labels')
+                        ->label('Imprimir Etiquetas de Envío')
+                        ->icon('heroicon-o-printer')
                         ->color('info')
+                        ->action(function ($records) {
+                            $orderIds = $records->pluck('id')->toArray();
+
+                            // Guardar los IDs en sesión para la próxima petición
+                            session(['bulk_print_order_ids' => $orderIds]);
+
+                            // Mostrar notificación con JavaScript para abrir en nueva pestaña
+                            \Filament\Notifications\Notification::make()
+                                ->title('Etiquetas generadas')
+                                ->success()
+                                ->body('Generando ' . $records->count() . ' etiquetas de envío...')
+                                ->send();
+
+                            // Usar JavaScript para abrir en nueva pestaña
+                            $url = route('orders.print.bulk.view');
+                            return redirect()->to($url);
+                        })
+                        ->deselectRecordsAfterCompletion()
                         ->requiresConfirmation()
-                        ->action(fn ($records) => $records->each->update(['status' => 'processing']))
-                        ->deselectRecordsAfterCompletion(),
+                        ->modalHeading('Imprimir etiquetas de envío')
+                        ->modalDescription('Se generarán etiquetas de envío para todas las órdenes seleccionadas.')
+                        ->modalSubmitActionLabel('Imprimir'),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');
