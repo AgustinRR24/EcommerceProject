@@ -7,7 +7,8 @@ export default function HotSale({ products, filters = {} }) {
     const [localFilters, setLocalFilters] = useState({
         min_price: filters.min_price || '',
         max_price: filters.max_price || '',
-        search: filters.search || ''
+        search: filters.search || '',
+        sort: filters.sort || 'discount'
     });
 
     const handleFilterChange = (key, value) => {
@@ -33,7 +34,8 @@ export default function HotSale({ products, filters = {} }) {
         setLocalFilters({
             min_price: '',
             max_price: '',
-            search: ''
+            search: '',
+            sort: 'discount'
         });
         router.get('/hotsale');
     };
@@ -103,6 +105,9 @@ export default function HotSale({ products, filters = {} }) {
                                             placeholder="Mín"
                                             value={localFilters.min_price}
                                             onChange={(e) => handleFilterChange('min_price', e.target.value)}
+                                            min="0"
+                                            max="999999"
+                                            step="0.01"
                                             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                                         />
                                         <input
@@ -110,6 +115,9 @@ export default function HotSale({ products, filters = {} }) {
                                             placeholder="Máx"
                                             value={localFilters.max_price}
                                             onChange={(e) => handleFilterChange('max_price', e.target.value)}
+                                            min="0"
+                                            max="999999"
+                                            step="0.01"
                                             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                                         />
                                     </div>
@@ -138,11 +146,15 @@ export default function HotSale({ products, filters = {} }) {
 
                                 {/* Sort Dropdown */}
                                 <div className="relative">
-                                    <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                                        <option>Ordenar por: Descuento</option>
-                                        <option>Precio: Menor a Mayor</option>
-                                        <option>Precio: Mayor a Menor</option>
-                                        <option>Más Nuevos</option>
+                                    <select
+                                        value={localFilters.sort}
+                                        onChange={(e) => handleFilterChange('sort', e.target.value)}
+                                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                                    >
+                                        <option value="discount">Ordenar por: Descuento</option>
+                                        <option value="price_asc">Precio: Menor a Mayor</option>
+                                        <option value="price_desc">Precio: Mayor a Menor</option>
+                                        <option value="newest">Más Nuevos</option>
                                     </select>
                                 </div>
                             </div>

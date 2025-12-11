@@ -20,7 +20,8 @@
         "pxlrbt/filament-excel": "^2.5",
         "resend/resend-laravel": "^1.0",
         "shuvroroy/filament-spatie-laravel-health": "^2.3",
-        "swisnl/filament-backgrounds": "^1.1"
+        "swisnl/filament-backgrounds": "^1.1",
+        "torgodly/html2media": "^1.1"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

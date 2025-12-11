@@ -9,7 +9,8 @@ export default function Landing({ products, categories, brands, filters = {} }) 
         max_price: filters.max_price || '',
         categories: filters.categories || [],
         brands: filters.brands || [],
-        search: filters.search || ''
+        search: filters.search || '',
+        sort: filters.sort || 'featured'
     });
 
     const handleFilterChange = (key, value) => {
@@ -46,7 +47,8 @@ export default function Landing({ products, categories, brands, filters = {} }) 
             max_price: '',
             categories: [],
             brands: [],
-            search: ''
+            search: '',
+            sort: 'featured'
         });
         router.get('/products');
     };
@@ -180,6 +182,9 @@ export default function Landing({ products, categories, brands, filters = {} }) 
                                             placeholder="Mín"
                                             value={localFilters.min_price}
                                             onChange={(e) => handleFilterChange('min_price', e.target.value)}
+                                            min="0"
+                                            max="999999"
+                                            step="0.01"
                                             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                                         />
                                         <input
@@ -187,6 +192,9 @@ export default function Landing({ products, categories, brands, filters = {} }) 
                                             placeholder="Máx"
                                             value={localFilters.max_price}
                                             onChange={(e) => handleFilterChange('max_price', e.target.value)}
+                                            min="0"
+                                            max="999999"
+                                            step="0.01"
                                             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                                         />
                                     </div>
@@ -243,12 +251,15 @@ export default function Landing({ products, categories, brands, filters = {} }) 
 
                                 {/* Sort Dropdown */}
                                 <div className="relative">
-                                    <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent">
-                                        <option>Ordenar por: Destacados</option>
-                                        <option>Precio: Menor a Mayor</option>
-                                        <option>Precio: Mayor a Menor</option>
-                                        <option>Más Recientes</option>
-                                        <option>Mejor Valorados</option>
+                                    <select
+                                        value={localFilters.sort}
+                                        onChange={(e) => handleFilterChange('sort', e.target.value)}
+                                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                                    >
+                                        <option value="featured">Ordenar por: Destacados</option>
+                                        <option value="price_asc">Precio: Menor a Mayor</option>
+                                        <option value="price_desc">Precio: Mayor a Menor</option>
+                                        <option value="newest">Más Recientes</option>
                                     </select>
                                 </div>
                             </div>
